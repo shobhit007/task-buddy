@@ -7,7 +7,7 @@ function CompltedTasks() {
 
   useEffect(() => {
     getCompletedTasksList();
-  }, []);
+  }, [getCompletedTasksList]);
 
   return (
     <div className="w-full p-8">
