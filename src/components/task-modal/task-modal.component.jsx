@@ -24,10 +24,10 @@ function TaskModal({ onCloseModal }) {
   };
 
   const addNewTask = async () => {
-    // if (!title || !description) {
-    //   console.log("fields are required.");
-    //   return;
-    // }
+    if (!title || !description) {
+      console.log("fields are required.");
+      return;
+    }
 
     if (!user) return;
 

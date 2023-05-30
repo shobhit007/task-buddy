@@ -8,7 +8,7 @@ function PendingTasks() {
 
   useEffect(() => {
     getPendingTasksList();
-  }, [getPendingTasksList]);
+  }, []);
 
   return (
     <div className="w-full p-8">

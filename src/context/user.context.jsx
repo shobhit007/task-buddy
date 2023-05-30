@@ -75,6 +75,7 @@ export const UserProvider = ({ children }) => {
       setUser(user);
       navigate("/", { replace: true });
     } catch (error) {
+      console.log(error);
       setErrorMessage(error.message);
     }
   };

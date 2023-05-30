@@ -1,6 +1,6 @@
 function SearchBox() {
   return (
-    <div className="max-w-md">
+    <div className="w-4/5 max-w-md">
       <form className="w-full flex bg-gray-200 rounded-md">
         <input
           type="text"

@@ -3,9 +3,11 @@ import { Route, Routes } from "react-router-dom";
 
 import Sidebar from "../../components/sidebar/sidebar.component";
 import Home from "../../components/home/home.component";
-import Category from "../../components/category/category.component";
+import Tasks from "../../components/all-tasks/all-tasks.component";
 import CompltedTasks from "../../components/completed-tasks/completed-tasks.component";
 import PendingTasks from "../../components/pending-tasks/pending-tasks.component";
+
+import Header from "../../components/header/header.component";
 
 import TaskModal from "../../components/task-modal/task-modal.component";
 
@@ -25,10 +27,12 @@ function Dashboard() {
         </div>
       )}
       <Routes>
-        <Route index element={<Home />} />
-        <Route path="/completed" element={<CompltedTasks />} />
-        <Route path="/pending" element={<PendingTasks />} />
-        <Route path="/:categoryId" element={<Category />} />
+        <Route element={<Header />}>
+          <Route index element={<Home />} />
+          <Route path="/completed" element={<CompltedTasks />} />
+          <Route path="/pending" element={<PendingTasks />} />
+          <Route path="/tasks" element={<Tasks />} />
+        </Route>
       </Routes>
     </div>
   );
