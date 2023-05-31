@@ -40,6 +40,7 @@ export const createNewTask = async (userId, data) => {
     ...data,
     userid: userId,
     completed: false,
+    created_at: new Date().toLocaleDateString(),
   };
   try {
     const doc = await db.createDocument(
@@ -152,6 +153,35 @@ export const tasksDescByDate = async (userId) => {
       Query.equal("userid", userId),
       Query.orderDesc("$createdAt"),
     ]);
+    return list;
+  } catch (error) {
+    return error;
+  }
+};
+
+// find tasks by date
+export const tasksByDate = async (userId, date) => {
+  try {
+    const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal("userid", userId),
+      Query.equal("created_at", date),
+    ]);
+
+    return list;
+  } catch (error) {
+    return error;
+  }
+};
+
+// find tasks by priority
+export const taskByPriority = async (userId, priorities) => {
+  console.log(priorities);
+  try {
+    const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal("userid", userId),
+      Query.equal("priority", [...priorities]),
+    ]);
+
     return list;
   } catch (error) {
     return error;

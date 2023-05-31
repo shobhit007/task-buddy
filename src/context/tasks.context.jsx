@@ -10,6 +10,8 @@ import {
   getListOfTasks,
   tasksAscByDate,
   tasksDescByDate,
+  tasksByDate,
+  taskByPriority,
 } from "../utils/api/appwrite.api";
 
 export const TaskContext = createContext();
@@ -100,6 +102,26 @@ export const TaskProvider = ({ children }) => {
     }
   };
 
+  const getListByDate = async (date) => {
+    if (!user) return;
+    try {
+      const { documents } = await tasksByDate(user.$id, date);
+      setTaskList(documents);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getListByPriority = async (priorities) => {
+    if (!user) return;
+    try {
+      const { documents } = await taskByPriority(user.$id, priorities);
+      setTaskList(documents);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const value = {
     taskList,
     getPendingTasksList,
@@ -110,6 +132,8 @@ export const TaskProvider = ({ children }) => {
     getAllTasks,
     getAscListByDate,
     getDescListByDate,
+    getListByDate,
+    getListByPriority,
   };
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 };

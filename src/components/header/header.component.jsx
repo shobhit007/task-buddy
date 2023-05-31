@@ -4,6 +4,7 @@ import SearchBox from "../search-box/search-box.component";
 import Button from "../button/button";
 import { Outlet } from "react-router-dom";
 import { UserContext } from "../../context/user.context";
+import FilterBar from "../filter-bar/filter-bar.component";
 
 function Header() {
   const { logOutUser } = useContext(UserContext);
@@ -21,6 +22,7 @@ function Header() {
           Log out
         </Button>
       </div>
+      <FilterBar />
       <Outlet />
     </div>
   );

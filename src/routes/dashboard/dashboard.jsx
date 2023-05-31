@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import Sidebar from "../../components/sidebar/sidebar.component";
@@ -13,15 +13,31 @@ import TaskModal from "../../components/task-modal/task-modal.component";
 
 function Dashboard() {
   const [showModal, setShowModal] = useState(false);
+  const overlayRef = useRef(null);
 
   const handleModal = () => setShowModal((p) => !p);
+
+  useLayoutEffect(() => {
+    const closeModal = (e) => {
+      if (e.target === overlayRef.current) {
+        handleModal();
+      }
+    };
+
+    document.body.addEventListener("click", closeModal);
+
+    return () => document.body.removeEventListener("click", closeModal);
+  }, []);
 
   return (
     <div className="lg:flex lg:h-screen overflow-hidden">
       <Sidebar onOpenModal={handleModal} />
       {showModal && (
         <div className="fixed inset-0 z-[9]">
-          <div className="h-screen bg-[rgba(0,0,0,0.54)] lg:py-16 xl:py-20">
+          <div
+            className="h-screen backdrop-blur-[3px] bg-[#00000080] lg:py-16 xl:py-20"
+            ref={overlayRef}
+          >
             <TaskModal onCloseModal={handleModal} />
           </div>
         </div>
