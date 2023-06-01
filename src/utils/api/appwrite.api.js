@@ -35,6 +35,7 @@ export const getUserAccount = () => account.get();
 // Delete current session to logout user
 export const deleteCurrentSession = () => account.deleteSession("current");
 
+// Create a new task
 export const createNewTask = async (userId, data) => {
   const task = {
     ...data,
@@ -56,48 +57,7 @@ export const createNewTask = async (userId, data) => {
   }
 };
 
-// Get all tasks
-export const getListOfTasks = async (userId) => {
-  try {
-    const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("userid", userId),
-      Query.orderDesc("$createdAt"),
-    ]);
-    return lists;
-  } catch (error) {
-    return error;
-  }
-};
-
-// Get all completed tasks
-export const getCompletedTasks = async (userId) => {
-  try {
-    const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("userid", userId),
-      Query.equal("completed", true),
-      Query.orderDesc("$createdAt"),
-    ]);
-    return lists;
-  } catch (error) {
-    return error;
-  }
-};
-
-// Get all pending tasks
-export const getPendingTasks = async (userId) => {
-  try {
-    const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("userid", userId),
-      Query.equal("completed", false),
-      Query.orderDesc("$createdAt"),
-    ]);
-    return lists;
-  } catch (error) {
-    return error;
-  }
-};
-
-// Completed a task
+// Update a task by completing
 export const completeTask = async (taskId) => {
   try {
     const task = await db.updateDocument(DATABASE_ID, COLLECTION_ID, taskId, {
@@ -109,7 +69,7 @@ export const completeTask = async (taskId) => {
   }
 };
 
-// Completed a task
+// Delate a task
 export const deleteTask = async (taskId) => {
   try {
     await db.deleteDocument(DATABASE_ID, COLLECTION_ID, taskId);
@@ -133,7 +93,34 @@ export const updateTask = async (taskId, data) => {
   }
 };
 
-// find tasks by asc order
+// Get all tasks
+export const getListOfTasks = async (userId) => {
+  try {
+    const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal("userid", userId),
+      Query.orderDesc("$createdAt"),
+    ]);
+    return lists;
+  } catch (error) {
+    return error;
+  }
+};
+
+// Get tasks by status(pending/complete)
+export const getTasksByStatus = async (userId, status) => {
+  try {
+    const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal("userid", userId),
+      Query.equal("completed", status),
+      Query.orderDesc("$createdAt"),
+    ]);
+    return lists;
+  } catch (error) {
+    return error;
+  }
+};
+
+// find tasks in asc order by createdAt
 export const tasksAscByDate = async (userId) => {
   try {
     const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
@@ -146,7 +133,7 @@ export const tasksAscByDate = async (userId) => {
   }
 };
 
-// find tasks by asc order
+// find tasks in desc order by createdAt
 export const tasksDescByDate = async (userId) => {
   try {
     const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [

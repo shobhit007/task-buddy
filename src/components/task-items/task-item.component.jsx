@@ -1,8 +1,15 @@
-import React, { Fragment, useContext, useState } from "react";
-import { TaskContext } from "../../context/tasks.context";
+import React, { Fragment, useState } from "react";
+
+// import {TaskContext} from "../../context/tasks/tasks.context";
 
 import Input from "../input/input.component";
 import Button from "../button/button";
+
+import {
+  completeTaskAsync,
+  deleteTaskAsync,
+  updateTaskAsync,
+} from "../../context/tasks/tasks.action";
 
 const priorities = {
   urgent: "bg-red-400",
@@ -14,7 +21,8 @@ const priorities = {
 function Task({ task }) {
   const { title, description, $id, completed, priority, $createdAt } = task;
   const date = new Date($createdAt);
-  const { taskCompleted, taskDeleted, taskUpdated } = useContext(TaskContext);
+  // const { dispatch} = useContext(TaskContext);
+
   const [taskFields, setTaskFields] = useState({
     inputTitle: title,
     inputDescription: description,
@@ -35,9 +43,9 @@ function Task({ task }) {
     setMoreOptions(false);
   };
 
-  const handleTaskCompleted = () => taskCompleted($id);
+  const handleTaskCompleted = () => completeTaskAsync($id);
 
-  const handleTaskDeleted = () => taskDeleted($id);
+  const handleTaskDeleted = () => deleteTaskAsync($id);
 
   const handleTaskUpdated = () => {
     if (!inputDescription || !inputTitle) {
@@ -45,7 +53,7 @@ function Task({ task }) {
     }
 
     const data = { title: inputTitle, description: inputDescription };
-    taskUpdated($id, data);
+    updateTaskAsync($id, data);
   };
 
   return (

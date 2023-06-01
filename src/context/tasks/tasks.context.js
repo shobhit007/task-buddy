@@ -13,12 +13,12 @@ const INITIAL_STATE = {
   errorMessage: "",
 };
 
-export const Context = createContext({
+export const TaskContext = createContext({
   ...INITIAL_STATE,
   fetchTaskList: () => {},
 });
 
-export function Provider({ children }) {
+export function TaskProvider({ children }) {
   const { user } = useContext(UserContext);
   const [state, dispatch] = useReducer(taskReducer, INITIAL_STATE);
 
@@ -43,7 +43,8 @@ export function Provider({ children }) {
     loading,
     errorMessage,
     fetchTaskList,
+    dispatch,
   };
 
-  return <Context.Provider value={value}>{children}</Context.Provider>;
+  return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 }

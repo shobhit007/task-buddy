@@ -7,8 +7,7 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
 
 import { UserProvider } from "./context/user.context";
-import { TaskProvider } from "./context/tasks.context";
-import { Provider } from "./context/tasks/tasks.context";
+import { TaskProvider } from "./context/tasks/tasks.context";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -16,9 +15,7 @@ root.render(
     <BrowserRouter>
       <UserProvider>
         <TaskProvider>
-          <Provider>
-            <App />
-          </Provider>
+          <App />
         </TaskProvider>
       </UserProvider>
     </BrowserRouter>

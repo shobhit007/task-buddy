@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 function Sidebar({ onOpenModal }) {
   return (
-    <div className="w-full lg:w-1/4 bg-white relative">
+    <div className="w-full lg:w-1/4 bg-white relative border-r border-r-gray-300 border-solid">
       <header className="py-4  border-b-2 border-gray-100 lg:border-none lg:h-20">
         <nav className="flex justify-between items-stretch px-4 lg:px-8 lg:block">
           <h2 className="text-lg font-semibold">TaskBuddy</h2>
@@ -62,46 +62,6 @@ function Sidebar({ onOpenModal }) {
 
           <Link to="/tasks" className="block w-full">
             Tasks
-          </Link>
-        </li>
-        <li className="flex-1 lg:flex-initial text-center lg:text-left py-2 lg:p-4 lg:flex lg:gap-3 lg:font-bold lg:hover:bg-gray-200 lg:rounded lg:transition-colors">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="w-6 h-6 hidden invisible lg:block lg:visible"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-
-          <Link to="/pending" className="block w-full">
-            Pending
-          </Link>
-        </li>
-        <li className="flex-1 lg:flex-initial text-center lg:text-left py-2 lg:p-4 lg:flex lg:gap-3 lg:font-bold lg:hover:bg-gray-200 lg:rounded lg:transition-colors">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="w-6 h-6 hidden invisible lg:block lg:visible"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.5 12.75l6 6 9-13.5"
-            />
-          </svg>
-
-          <Link to="/completed" className="block w-full">
-            Completed
           </Link>
         </li>
       </ul>
