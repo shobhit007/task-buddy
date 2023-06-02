@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 
 import { TaskContext } from "../../context/tasks/tasks.context";
 import { UserContext } from "../../context/user.context";
-import { fetchTaskList } from "../../context/tasks/tasks.action";
+import { fetchTaskList, filteredList } from "../../context/tasks/tasks.action";
 
 import TaskList from "../tasks-list/tasks-list.component";
 import FilterCard from "../filter-card/filter-card.component";
@@ -109,11 +109,16 @@ function Tasks() {
     fetchTaskList(user)(dispatch);
   }, [user, dispatch]);
 
+  const handleFilters = (filters) => filteredList(user, filters)(dispatch);
+
   return (
     <div className="h-full w-full overflow-hidden">
       <div className="flex justify-end pr-10 py-2 bg-white border-y border-t-gray-300 border-solid relative">
         <div className="flex gap-3">
-          <button className="relative flex items-center text-xs font-light py-0.5 px-3 rounded-sm hover:bg-slate-300" onClick={() => setShowFilterCard(p => !p)}>
+          <button
+            className="relative flex items-center text-xs font-light py-0.5 px-3 rounded-sm hover:bg-slate-300"
+            onClick={() => setShowFilterCard((p) => !p)}
+          >
             <span className="material-symbols-outlined text-sm mr-0.5">
               filter_list
             </span>
@@ -126,7 +131,12 @@ function Tasks() {
             Sort
           </button>
         </div>
-       {showFilterCard && <FilterCard />}
+        {showFilterCard && (
+          <FilterCard
+            closeFilterCard={() => setShowFilterCard(false)}
+            onChangeFilter={handleFilters}
+          />
+        )}
       </div>
       <div className="pt-4 pb-4 px-4 lg:pb-28 bg-transparent h-full overflow-y-scroll">
         <div className="bg-transparent flex gap-4 pb-4">

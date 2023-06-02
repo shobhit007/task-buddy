@@ -40,7 +40,6 @@ export const createNewTask = async (userId, data) => {
   const task = {
     ...data,
     userid: userId,
-    completed: false,
     created_at: new Date().toLocaleDateString(),
   };
   try {
@@ -61,7 +60,7 @@ export const createNewTask = async (userId, data) => {
 export const completeTask = async (taskId) => {
   try {
     const task = await db.updateDocument(DATABASE_ID, COLLECTION_ID, taskId, {
-      completed: true,
+      status: "complete",
     });
     return task;
   } catch (error) {
@@ -106,20 +105,6 @@ export const getListOfTasks = async (userId) => {
   }
 };
 
-// Get tasks by status(pending/complete)
-export const getTasksByStatus = async (userId, status) => {
-  try {
-    const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("userid", userId),
-      Query.equal("completed", status),
-      Query.orderDesc("$createdAt"),
-    ]);
-    return lists;
-  } catch (error) {
-    return error;
-  }
-};
-
 // find tasks in asc order by createdAt
 export const tasksAscByDate = async (userId) => {
   try {
@@ -146,29 +131,24 @@ export const tasksDescByDate = async (userId) => {
   }
 };
 
-// find tasks by date
-export const tasksByDate = async (userId, date) => {
+// Filter tasks
+export const filterTaskList = async (userId, filters) => {
+  const queries = Object.keys(filters).reduce((acc, key) => {
+    if (key === "status" && filters[key].length) {
+      acc.push(Query.equal("status", filters[key]));
+    } else if (key === "selectedDate" && filters[key] !== null) {
+      acc.push(Query.equal("created_at", filters[key].toLocaleDateString()));
+    } else if (key === "priorities" && filters[key].size > 0) {
+      acc.push(Query.equal("priority", [...filters[key]]));
+    }
+    return acc;
+  }, []);
+
   try {
     const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
       Query.equal("userid", userId),
-      Query.equal("created_at", date),
+      ...queries,
     ]);
-
-    return list;
-  } catch (error) {
-    return error;
-  }
-};
-
-// find tasks by priority
-export const taskByPriority = async (userId, priorities) => {
-  console.log(priorities);
-  try {
-    const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("userid", userId),
-      Query.equal("priority", [...priorities]),
-    ]);
-
     return list;
   } catch (error) {
     return error;
