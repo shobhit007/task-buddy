@@ -1,6 +1,25 @@
+import { useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 
+import { UserContext } from "../../context/user.context";
+
+import { TaskContext } from "../../context/tasks/tasks.context";
+import { fetchUserListAsync } from "../../context/tasks/tasks.action";
+
 function Sidebar({ onOpenModal }) {
+  const { dispatch, userLists } = useContext(TaskContext);
+  const { user } = useContext(UserContext);
+
+  useEffect(() => {
+    if (!user) return;
+
+    fetchUserListAsync(user.$id)(dispatch);
+  }, [dispatch, user]);
+
+  const makeLink = (link) => {
+    return link.replace(" ", "_").toLowerCase();
+  };
+
   return (
     <div className="w-full lg:w-1/4 bg-white relative border-r border-r-gray-300 border-solid">
       <header className="py-4  border-b-2 border-gray-100 lg:border-none lg:h-20">
@@ -51,7 +70,7 @@ function Sidebar({ onOpenModal }) {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-6 h-6"
+            className="w-6 h-6 hidden invisible lg:block lg:visible"
           >
             <path
               strokeLinecap="round"
@@ -64,6 +83,16 @@ function Sidebar({ onOpenModal }) {
             Tasks
           </Link>
         </li>
+        {userLists.map(({ list_name, $id }) => (
+          <li
+            key={$id}
+            className="flex-1 lg:flex-initial text-center lg:text-left py-2 lg:p-4 lg:flex lg:gap-3 lg:font-bold lg:hover:bg-gray-200 lg:rounded lg:transition-colors"
+          >
+            <Link to={`/${makeLink(list_name)}`} className="block w-full">
+              {list_name}
+            </Link>
+          </li>
+        ))}
       </ul>
       <footer className="hidden invisible lg:block lg:visible pt-1 px-4 absolute bottom-0 w-full h-20">
         <button

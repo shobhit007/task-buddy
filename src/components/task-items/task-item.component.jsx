@@ -1,210 +1,205 @@
 import React, { Fragment, useState } from "react";
 
-// import {TaskContext} from "../../context/tasks/tasks.context";
-
-import Input from "../input/input.component";
-import Button from "../button/button";
-
 import {
   completeTaskAsync,
   deleteTaskAsync,
-  updateTaskAsync,
 } from "../../context/tasks/tasks.action";
 
-const priorities = {
-  urgent: "bg-red-400",
-  high: "bg-purple-400",
-  medium: "bg-green-400",
-  low: "bg-yellow-400",
-};
-
 function Task({ task }) {
-  const { title, description, $id, completed, priority, $createdAt } = task;
-  const date = new Date($createdAt);
-  // const { dispatch} = useContext(TaskContext);
+  const { title, status, $createdAt, $id } = task;
+  const [showEdit, setShowEdit] = useState(false);
 
-  const [taskFields, setTaskFields] = useState({
-    inputTitle: title,
-    inputDescription: description,
-  });
+  const date = new Date($createdAt).toLocaleDateString();
 
-  const [isEdit, setIsEdit] = useState(false);
-  const [moreOptions, setMoreOptions] = useState(false);
+  const handleCompleteTask = () => completeTaskAsync($id);
 
-  const { inputDescription, inputTitle } = taskFields;
-
-  const handleOnChangeFields = (e) => {
-    const { name, value } = e.target;
-    setTaskFields((preValues) => ({ ...preValues, [name]: value }));
-  };
-
-  const handleEdit = () => {
-    setIsEdit(true);
-    setMoreOptions(false);
-  };
-
-  const handleTaskCompleted = () => completeTaskAsync($id);
-
-  const handleTaskDeleted = () => deleteTaskAsync($id);
-
-  const handleTaskUpdated = () => {
-    if (!inputDescription || !inputTitle) {
-      console.log("fields are required.");
-    }
-
-    const data = { title: inputTitle, description: inputDescription };
-    updateTaskAsync($id, data);
-  };
+  const handleDeleteTask = () => deleteTaskAsync($id);
 
   return (
-    <div className="bg-white p-4 rounded">
-      {!isEdit ? (
-        <div className="flex justify-between items-center">
-          <div className="flex justify-start items-center gap-2">
-            <span
-              className={`inline-block w-3 h-8 rounded ${priorities[priority]}`}
-            ></span>
-            <h2 className="text-black font-semibold">{title}</h2>
-          </div>
-          <div className="relative">
-            <button className="p-2" onClick={() => setMoreOptions((p) => !p)}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="w-6 h-6"
+    <Fragment>
+      <div
+        className={`group bg-white p-3 rounded shadow hover:shadow-md hover:shadow-gray-300 h-max border-t-2 ${
+          status === "pending" ? "border-gray-300" : "border-green-300"
+        }`}
+      >
+        <div className="pb-2 cursor-pointer">
+          <span className="text-sm text-medium text-gray-400 block">
+            My List
+          </span>
+          <span className="text-[11px] text-medium text-gray-400 block">
+            Created at: {date}
+          </span>
+          <h1 className="text-base text-black font-normal mt-0.5">{title}</h1>
+        </div>
+        <div className="flex justify-between border-t border-gray-100 opacity-0 invisible h-0 group-hover:opacity-100 group-hover:visible group-hover:h-max">
+          <div className="flex gap-x-2">
+            {status !== "complete" && (
+              <button
+                className="relative group/button"
+                onClick={handleCompleteTask}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
-                />
-              </svg>
-            </button>
-            {moreOptions && (
-              <div className="absolute top-6 right-0 bg-white z-[2]">
-                {!completed && (
-                  <button
-                    onClick={handleTaskCompleted}
-                    className="w-full px-1 py-2 flex justify-start text-sm font-medium hover:bg-green-400 hover:text-white"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      className="w-5 h-5 mr-1"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4.5 12.75l6 6 9-13.5"
-                      />
-                    </svg>
-                    Complete
-                  </button>
-                )}
-                {!completed && (
-                  <button
-                    onClick={handleEdit}
-                    className="w-full px-1 py-2 flex justify-start text-sm font-medium hover:bg-yellow-500 hover:text-white"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.5"
-                      stroke="currentColor"
-                      className="w-5 h-5 mr-1"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
-                      />
-                    </svg>
-                    Edit
-                  </button>
-                )}
-                <button
-                  onClick={handleTaskDeleted}
-                  className="w-full px-1 py-2 flex justify-start text-sm font-medium hover:bg-red-400 hover:text-white"
+                <span className="group-hover/button:text-green-600 material-symbols-outlined text-xl font-semibold text-gray-400">
+                  check
+                </span>
+                <span
+                  className="absolute -top-full left-1/2
+             -translate-x-1/2 z-[1]
+              block text-xs text-white
+              font-medium rounded bg-gray-700
+              w-max px-3 py-2 
+              -translate-y-2 invisible opacity-0 group-hover/button:opacity-100 group-hover/button:visible
+              after:content-[''] after:absolute after:border-solid after:border-transparent after:border-t-gray-700 after:top-full after:border-t-4 after:border-x-4
+              after:-translate-x-1/2 after:left-1/2"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="w-5 h-5 mr-1"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                    />
-                  </svg>
-                  Delete
+                  Complete task
+                </span>
+              </button>
+            )}
+            <button
+              className="relative group/button"
+              onClick={() => setShowEdit(true)}
+            >
+              <span className="group-hover/button:text-blue-600 material-symbols-outlined text-base font-semibold text-gray-400">
+                edit
+              </span>
+              <span
+                className="absolute -top-full left-1/2
+             -translate-x-1/2 z-[1]
+              block text-xs text-white
+              font-medium rounded bg-gray-700
+              w-max px-3 py-2 
+              -translate-y-2 invisible opacity-0 group-hover/button:opacity-100 group-hover/button:visible
+              after:content-[''] after:absolute after:border-solid after:border-transparent after:border-t-gray-700 after:top-full after:border-t-4 after:border-x-4
+              after:-translate-x-1/2 after:left-1/2"
+              >
+                Edit
+              </span>
+            </button>
+          </div>
+          <button className="relative group/button" onClick={handleDeleteTask}>
+            <span className="group-hover/button:text-red-600 material-symbols-outlined text-base font-semibold text-gray-400">
+              delete
+            </span>
+            <span
+              className="absolute -top-full left-1/2
+             -translate-x-1/2 z-[1]
+              block text-xs text-white
+              font-medium rounded bg-gray-700
+              w-max px-3 py-2 
+              -translate-y-2 invisible opacity-0 group-hover/button:opacity-100 group-hover/button:visible
+              after:content-[''] after:absolute after:border-solid after:border-transparent after:border-t-gray-700 after:top-full after:border-t-4 after:border-x-4
+              after:-translate-x-1/2 after:left-1/2"
+            >
+              Delete
+            </span>
+          </button>
+        </div>
+      </div>
+      {/* overlay */}
+      {showEdit && (
+        <div className="fixed inset-0 w-full h-full z-10">
+          <div className="py-20 relative h-screen bg-[rgba(0,0,0,0.2)] backdrop-blur-sm">
+            <div className="max-w-screen-md my-0 mx-auto bg-white rounded-lg overflow-hidden shadow-0 relative">
+              <div className="flex items-center justify-between p-4 bg-slate-200">
+                <p className="text-base text-gray-600 font-medium">My List</p>
+                <button
+                  className="group px-3 py-[3px] rounded bg-white"
+                  onClick={() => setShowEdit(false)}
+                >
+                  <span className="material-symbols-outlined text-xl font-semibold text-gray-400 group-hover:rotate-90 group-hover:text-blue-400 transition-all duration-300">
+                    close
+                  </span>
                 </button>
               </div>
-            )}
+              <div className="px-10 py-8">
+                <div className="border-b border-b-gray-200 py-3 flex items-center justify-between">
+                  <span className="text-[11px] text-gray-400 inline-block uppercase">
+                    Created: <span className="text-sm ml-0.5">{date}</span>
+                  </span>
+                  <div className="flex gap-3">
+                    <button
+                      className="relative group/button"
+                      onClick={handleCompleteTask}
+                    >
+                      <span className="group-hover/button:text-green-600 material-symbols-outlined text-xl font-semibold text-gray-400">
+                        check
+                      </span>
+                      <span
+                        className="absolute -top-full left-1/2
+                      -translate-x-1/2 z-[1]
+                        block text-xs text-white
+                        font-medium rounded bg-gray-700
+                        w-max px-3 py-2 
+                        -translate-y-2 invisible opacity-0 group-hover/button:opacity-100 group-hover/button:visible
+                        after:content-[''] after:absolute after:border-solid after:border-transparent after:border-t-gray-700 after:top-full after:border-t-4 after:border-x-4
+                        after:-translate-x-1/2 after:left-1/2"
+                      >
+                        Complete task
+                      </span>
+                    </button>
+                    <button
+                      className="relative group/button"
+                      onClick={handleCompleteTask}
+                    >
+                      <span className="group-hover/button:text-blue-400 material-symbols-outlined text-xl font-semibold text-gray-400">
+                        label_important
+                      </span>
+                      <span
+                        className="absolute -top-full left-1/2
+                      -translate-x-1/2 z-[1]
+                        block text-xs text-white
+                        font-medium rounded bg-gray-700
+                        w-max px-3 py-2 
+                        -translate-y-2 invisible opacity-0 group-hover/button:opacity-100 group-hover/button:visible
+                        after:content-[''] after:absolute after:border-solid after:border-transparent after:border-t-gray-700 after:top-full after:border-t-4 after:border-x-4
+                        after:-translate-x-1/2 after:left-1/2"
+                      >
+                        Set priority
+                      </span>
+                    </button>
+                    <button
+                      className="relative group/button"
+                      onClick={handleDeleteTask}
+                    >
+                      <span className="group-hover/button:text-red-600 material-symbols-outlined text-base font-semibold text-gray-400">
+                        delete
+                      </span>
+                      <span
+                        className="absolute -top-full left-1/2
+                      -translate-x-1/2 z-[1]
+                        block text-xs text-white
+                        font-medium rounded bg-gray-700
+                        w-max px-3 py-2 
+                        -translate-y-2 invisible opacity-0 group-hover/button:opacity-100 group-hover/button:visible
+                        after:content-[''] after:absolute after:border-solid after:border-transparent after:border-t-gray-700 after:top-full after:border-t-4 after:border-x-4
+                        after:-translate-x-1/2 after:left-1/2"
+                      >
+                        Delete
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <div className="py-3">
+                  <input
+                    type="text"
+                    placeholder="Title"
+                    className="p-3 w-full focus:outline-none border border-transparent rounded hover:border-gray-300 focus:border-gray-300"
+                  />
+                  <textarea
+                    placeholder="Description"
+                    rows={3}
+                    className="w-full focus:outline-none p-3 mt-3 border border-transparent rounded hover:border-gray-300 focus:border-gray-300"
+                  />
+                </div>
+              </div>
+              <button className="absolute right-0 bottom-0 bg-blue-600 text-white font-normal text-sm py-2 px-3 rounded-tl-lg">
+                Update
+              </button>
+            </div>
           </div>
         </div>
-      ) : (
-        <Fragment>
-          <div className="flex justify-end">
-            <button className="p-2" onClick={() => setIsEdit(false)}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="w-5 h-5 mr-1"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-          <Input
-            type="text"
-            value={inputTitle}
-            name="inputTitle"
-            onChange={handleOnChangeFields}
-          />
-        </Fragment>
       )}
-
-      {!isEdit && (
-        <p className="text-sm font-semibold text-gray-400">
-          {date.toLocaleDateString()}
-        </p>
-      )}
-
-      {!isEdit ? (
-        <p className="text-black font-normal">{description}</p>
-      ) : (
-        <textarea
-          value={inputDescription}
-          name="inputDescription"
-          onChange={handleOnChangeFields}
-          className="w-full"
-          rows={6}
-        />
-      )}
-      {isEdit && (
-        <Button style={{ marginTop: "0.5rem" }} onClick={handleTaskUpdated}>
-          Update
-        </Button>
-      )}
-    </div>
+    </Fragment>
   );
 }
 

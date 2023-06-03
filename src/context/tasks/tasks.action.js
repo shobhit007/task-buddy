@@ -9,6 +9,8 @@ import {
   tasksAscByDate,
   tasksDescByDate,
   filterTaskList,
+  createList,
+  getUserLists,
 } from "../../utils/api/appwrite.api";
 
 const fetchTaskListStart = () => ({ type: TASKS_TYPES.FETCH_TASKS_START });
@@ -107,4 +109,36 @@ export const updateTaskAsync = async (taskId, data) => {
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Add fiter to filters state
+// List
+
+//Create List
+export const createNewList = async (userId, name) => {
+  try {
+    const list = await createList(userId, name);
+    console.log(list);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const fetchUserListStart = () => ({ type: TASKS_TYPES.FETCH_USER_LISTS_START });
+
+const fetchUserListSuccess = (list) => ({
+  type: TASKS_TYPES.FETCH_USER_LISTS_SUCCESS,
+  payload: list,
+});
+
+const fetchUserListFailed = (errorMessage) => ({
+  type: TASKS_TYPES.FETCH_USER_LISTS_FAILED,
+  payload: errorMessage,
+});
+
+export const fetchUserListAsync = (userid) => async (dispatch) => {
+  dispatch(fetchUserListStart());
+  try {
+    const { documents } = await getUserLists(userid);
+    dispatch(fetchUserListSuccess(documents));
+  } catch (error) {
+    dispatch(fetchUserListFailed(error.message));
+  }
+};

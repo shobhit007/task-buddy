@@ -6,17 +6,17 @@ const INITIAL_STATE = {
   taskList: [],
   loading: false,
   errorMessage: "",
+  userLists: [],
 };
 
 export const TaskContext = createContext({
   ...INITIAL_STATE,
-  fetchTaskList: () => {},
 });
 
 export function TaskProvider({ children }) {
   const [state, dispatch] = useReducer(taskReducer, INITIAL_STATE);
 
-  const { taskList, loading, errorMessage, filters } = state;
+  const { taskList, loading, errorMessage, filters, userLists } = state;
 
   const value = {
     taskList,
@@ -24,6 +24,7 @@ export function TaskProvider({ children }) {
     errorMessage,
     dispatch,
     filters,
+    userLists,
   };
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

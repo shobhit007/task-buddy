@@ -20,6 +20,7 @@ const db = new Databases(client);
 
 const DATABASE_ID = "6472f275b59ed08821bc";
 const COLLECTION_ID = "6472f40c812bc42aa03a";
+const LIST_COLLECTION_ID = "647b2931a770730c8329";
 
 // Create an account
 export const createUserAccount = (email, password, name) =>
@@ -37,8 +38,17 @@ export const deleteCurrentSession = () => account.deleteSession("current");
 
 // Create a new task
 export const createNewTask = async (userId, data) => {
+  const {
+    title,
+    description,
+    selectedList: { id: list_id, name: list_name },
+  } = data;
+
   const task = {
-    ...data,
+    title,
+    description,
+    list_name,
+    list_id,
     userid: userId,
     created_at: new Date().toLocaleDateString(),
   };
@@ -150,6 +160,37 @@ export const filterTaskList = async (userId, filters) => {
       ...queries,
     ]);
     return list;
+  } catch (error) {
+    return error;
+  }
+};
+
+/////////////////////////////////////////////////////////////////////////////
+//List
+
+//Create a new List
+export const createList = async (userid, listName) => {
+  try {
+    const list = await db.createDocument(
+      DATABASE_ID,
+      LIST_COLLECTION_ID,
+      ID.unique(),
+      { userid, list_name: listName },
+      [Permission.write(Role.user(userid))]
+    );
+    return list;
+  } catch (error) {
+    return error;
+  }
+};
+
+//Get user's all lists
+export const getUserLists = async (userid) => {
+  try {
+    const lists = await db.listDocuments(DATABASE_ID, LIST_COLLECTION_ID, [
+      Query.equal("userid", userid),
+    ]);
+    return lists;
   } catch (error) {
     return error;
   }

@@ -26,5 +26,10 @@
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
     }
+
+    .scrollbar {
+      display: block;
+      scrollbar-width: 4px;
+    }
   }
 }

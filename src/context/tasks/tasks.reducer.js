@@ -5,10 +5,14 @@ export const taskReducer = (state, action) => {
 
   switch (type) {
     case TASKS_TYPES.FETCH_TASKS_START:
+    case TASKS_TYPES.FETCH_USER_LISTS_START:
       return { ...state, loading: true };
     case TASKS_TYPES.FETCH_TASKS_SUCCESS:
       return { ...state, loading: false, taskList: payload };
+    case TASKS_TYPES.FETCH_USER_LISTS_SUCCESS:
+      return { ...state, loading: false, userLists: payload };
     case TASKS_TYPES.FETCH_TASKS_FAILED:
+    case TASKS_TYPES.FETCH_USER_LISTS_FAILED:
       return { ...state, loading: false, errorMessage: payload };
     default:
       return state;

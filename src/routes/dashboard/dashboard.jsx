@@ -23,6 +23,7 @@ function Dashboard() {
         <Route element={<Header />}>
           <Route index element={<Home />} />
           <Route path="/tasks" element={<Tasks />} />
+          <Route path="/:list_name" element={<Tasks />} />
         </Route>
       </Routes>
       <FloatingButton onClick={() => setShowModal(true)} />
