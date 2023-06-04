@@ -1,19 +1,58 @@
 import React, { Fragment, useState } from "react";
 
+import { Ban, FlagIcon } from "lucide-react";
+
 import {
   completeTaskAsync,
   deleteTaskAsync,
+  updateTaskAsync,
 } from "../../context/tasks/tasks.action";
 
+const priorityColors = {
+  urgent: "#dc2626",
+  high: "#facc15",
+  normal: "#38bdf8",
+  low: "#a3a3a3",
+};
+
 function Task({ task }) {
-  const { title, status, $createdAt, $id } = task;
+  const { title, priority, description, status, $createdAt, $id, list_name } =
+    task;
   const [showEdit, setShowEdit] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [formFields, setFormFields] = useState({
+    title,
+    description,
+    priority,
+  });
 
   const date = new Date($createdAt).toLocaleDateString();
+
+  const handleOnChange = (e) => {
+    const { name, value } = e.target;
+    setFormFields((preValues) => ({ ...preValues, [name]: value }));
+
+    if (name === "priority") setShowOptions(false);
+  };
 
   const handleCompleteTask = () => completeTaskAsync($id);
 
   const handleDeleteTask = () => deleteTaskAsync($id);
+
+  const handleUpdateTask = () => {
+    if (!formFields.title || !formFields.description) {
+      console.log("fields are required");
+      return;
+    }
+
+    const data = {
+      title: formFields.title,
+      description: formFields.description,
+      priority: formFields.priority,
+    };
+    updateTaskAsync($id, data);
+    setShowEdit(false);
+  };
 
   return (
     <Fragment>
@@ -24,7 +63,7 @@ function Task({ task }) {
       >
         <div className="pb-2 cursor-pointer">
           <span className="text-sm text-medium text-gray-400 block">
-            My List
+            {list_name}
           </span>
           <span className="text-[11px] text-medium text-gray-400 block">
             Created at: {date}
@@ -101,7 +140,9 @@ function Task({ task }) {
           <div className="py-20 relative h-screen bg-[rgba(0,0,0,0.2)] backdrop-blur-sm">
             <div className="max-w-screen-md my-0 mx-auto bg-white rounded-lg overflow-hidden shadow-0 relative">
               <div className="flex items-center justify-between p-4 bg-slate-200">
-                <p className="text-base text-gray-600 font-medium">My List</p>
+                <p className="text-base text-gray-600 font-medium">
+                  {list_name}
+                </p>
                 <button
                   className="group px-3 py-[3px] rounded bg-white"
                   onClick={() => setShowEdit(false)}
@@ -137,26 +178,151 @@ function Task({ task }) {
                         Complete task
                       </span>
                     </button>
-                    <button
-                      className="relative group/button"
-                      onClick={handleCompleteTask}
-                    >
-                      <span className="group-hover/button:text-blue-400 material-symbols-outlined text-xl font-semibold text-gray-400">
-                        label_important
-                      </span>
-                      <span
-                        className="absolute -top-full left-1/2
-                      -translate-x-1/2 z-[1]
-                        block text-xs text-white
-                        font-medium rounded bg-gray-700
-                        w-max px-3 py-2 
-                        -translate-y-2 invisible opacity-0 group-hover/button:opacity-100 group-hover/button:visible
-                        after:content-[''] after:absolute after:border-solid after:border-transparent after:border-t-gray-700 after:top-full after:border-t-4 after:border-x-4
-                        after:-translate-x-1/2 after:left-1/2"
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowOptions((p) => !p)}
+                        className="relative group/button h-full"
                       >
-                        Set priority
-                      </span>
-                    </button>
+                        <FlagIcon
+                          size={14}
+                          fill={
+                            priorityColors[formFields.priority]
+                              ? priorityColors[formFields.priority]
+                              : "transparent"
+                          }
+                          className={`text-gray-500 font-medium group-hover/button:text-blue-600`}
+                        />
+                        <span
+                          className="absolute -top-full left-1/2
+                            -translate-x-1/2 z-[1]
+                              block text-xs text-white
+                              font-medium rounded bg-gray-700
+                              w-max px-3 py-2 
+                              -translate-y-2 invisible opacity-0 group-hover/button:opacity-100 group-hover/button:visible
+                              after:content-[''] after:absolute after:border-solid after:border-transparent after:border-t-gray-700 after:top-full after:border-t-4 after:border-x-4
+                              after:-translate-x-1/2 after:left-1/2"
+                        >
+                          Set priority
+                        </span>
+                      </button>
+                      {showOptions && (
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-max z-[10]">
+                          <div className="p-2 bg-white border border-gray-200 rounded shadow-xl shadow-gray-300">
+                            <label
+                              htmlFor="urgent"
+                              className="block relative w-full"
+                            >
+                              <input
+                                id="urgent"
+                                type="radio"
+                                name="priority"
+                                className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
+                                value="urgent"
+                                onChange={handleOnChange}
+                              />
+                              <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                                <FlagIcon
+                                  size={14}
+                                  color="#dc2626"
+                                  fill="#dc2626"
+                                  className="mr-2"
+                                />
+                                urgent
+                              </span>
+                            </label>
+                            <label
+                              htmlFor="high"
+                              className="block relative w-full"
+                            >
+                              <input
+                                id="high"
+                                type="radio"
+                                name="priority"
+                                className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
+                                value="high"
+                                onChange={handleOnChange}
+                              />
+                              <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                                <FlagIcon
+                                  size={14}
+                                  color="#facc15"
+                                  fill="#facc15"
+                                  className="mr-2"
+                                />
+                                High
+                              </span>
+                            </label>
+                            <label
+                              htmlFor="normal"
+                              className="block relative w-full"
+                            >
+                              <input
+                                id="normal"
+                                type="radio"
+                                name="priority"
+                                className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
+                                value="normal"
+                                onChange={handleOnChange}
+                              />
+                              <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                                <FlagIcon
+                                  size={14}
+                                  color="#38bdf8"
+                                  fill="#38bdf8"
+                                  className="mr-2"
+                                />
+                                Normal
+                              </span>
+                            </label>
+                            <label
+                              htmlFor="low"
+                              className="block relative w-full"
+                            >
+                              <input
+                                id="low"
+                                type="radio"
+                                name="priority"
+                                className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
+                                value="low"
+                                onChange={handleOnChange}
+                              />
+                              <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                                <FlagIcon
+                                  size={14}
+                                  color="#a3a3a3"
+                                  fill="#a3a3a3"
+                                  className="mr-2"
+                                />
+                                Low
+                              </span>
+                            </label>
+                            <div className="py-2 border-t border-t-gray-200">
+                              <label
+                                htmlFor="no"
+                                className="block relative w-full"
+                              >
+                                <input
+                                  id="no"
+                                  type="radio"
+                                  name="priority"
+                                  className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
+                                  value="no"
+                                  onChange={handleOnChange}
+                                />
+                                <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                                  <Ban
+                                    size={14}
+                                    color="#a3a3a3"
+                                    className="mr-2"
+                                  />
+                                  Clear
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <button
                       className="relative group/button"
                       onClick={handleDeleteTask}
@@ -183,16 +349,25 @@ function Task({ task }) {
                   <input
                     type="text"
                     placeholder="Title"
+                    name="title"
+                    value={formFields.title}
+                    onChange={handleOnChange}
                     className="p-3 w-full focus:outline-none border border-transparent rounded hover:border-gray-300 focus:border-gray-300"
                   />
                   <textarea
                     placeholder="Description"
                     rows={3}
+                    name="description"
+                    value={formFields.description}
+                    onChange={handleOnChange}
                     className="w-full focus:outline-none p-3 mt-3 border border-transparent rounded hover:border-gray-300 focus:border-gray-300"
                   />
                 </div>
               </div>
-              <button className="absolute right-0 bottom-0 bg-blue-600 text-white font-normal text-sm py-2 px-3 rounded-tl-lg">
+              <button
+                onClick={handleUpdateTask}
+                className="absolute right-0 bottom-0 bg-blue-600 text-white font-normal text-sm py-2 px-3 rounded-tl-lg"
+              >
                 Update
               </button>
             </div>
