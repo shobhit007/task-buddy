@@ -9,6 +9,7 @@ import Header from "../../components/header/header.component";
 
 import TaskModal from "../../components/task-modal/task-modal.component";
 import FloatingButton from "../../components/floating-button/floating-button.component";
+import Categories from "../../components/categories/categories.component";
 
 function Dashboard() {
   const [showModal, setShowModal] = useState(false);
@@ -22,8 +23,8 @@ function Dashboard() {
       <Routes>
         <Route element={<Header />}>
           <Route index element={<Home />} />
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/:list_name" element={<Tasks />} />
+          <Route index path="/tasks" element={<Tasks />} />
+          <Route path="/:list_name" element={<Categories />} />
         </Route>
       </Routes>
       <FloatingButton onClick={() => setShowModal(true)} />

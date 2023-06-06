@@ -80,7 +80,13 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
       return;
     }
 
-    onChangeFilter({ status, selectedDate: date, priorities });
+    let convertedPriorities = [...priorities].map((val) => parseInt(val));
+
+    onChangeFilter({
+      status,
+      selectedDate: date,
+      priorities: new Set(convertedPriorities),
+    });
   };
 
   return (
@@ -253,7 +259,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                   type="checkbox"
                   name="priority"
                   className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="urgent"
+                  value="3"
                   onChange={setPriorities}
                 />
                 <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
@@ -271,7 +277,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                   type="checkbox"
                   name="priority"
                   className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="high"
+                  value="2"
                   onChange={setPriorities}
                 />
                 <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
@@ -289,7 +295,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                   type="checkbox"
                   name="priority"
                   className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="normal"
+                  value="1"
                   onChange={setPriorities}
                 />
                 <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
@@ -307,7 +313,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                   type="checkbox"
                   name="priority"
                   className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="low"
+                  value="0"
                   onChange={setPriorities}
                 />
                 <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">

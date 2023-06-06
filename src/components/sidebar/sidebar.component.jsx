@@ -88,7 +88,11 @@ function Sidebar({ onOpenModal }) {
             key={$id}
             className="flex-1 lg:flex-initial text-center lg:text-left py-2 lg:p-4 lg:flex lg:gap-3 lg:font-bold lg:hover:bg-gray-200 lg:rounded lg:transition-colors"
           >
-            <Link to={`/${makeLink(list_name)}`} className="block w-full">
+            <Link
+              to={`/${makeLink(list_name)}`}
+              className="block w-full"
+              state={{ list_id: $id }}
+            >
               {list_name}
             </Link>
           </li>

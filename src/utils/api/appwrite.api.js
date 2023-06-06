@@ -19,8 +19,12 @@ const account = new Account(client);
 const db = new Databases(client);
 
 const DATABASE_ID = "6472f275b59ed08821bc";
-const COLLECTION_ID = "6472f40c812bc42aa03a";
+const COLLECTION_ID = "647de6c2d35a22e34b6a";
 const LIST_COLLECTION_ID = "647b2931a770730c8329";
+
+// client.subscribe("databases.*.collections.*", (res) => {
+//   console.log(res);
+// });
 
 // Create an account
 export const createUserAccount = (email, password, name) =>
@@ -87,6 +91,9 @@ export const deleteTask = async (taskId) => {
   }
 };
 
+export const updateTaskStatus = async (taskId, status) =>
+  db.updateDocument(DATABASE_ID, COLLECTION_ID, taskId, { status });
+
 // update a task
 export const updateTask = async (taskId, data) => {
   try {
@@ -107,6 +114,21 @@ export const getListOfTasks = async (userId) => {
   try {
     const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
       Query.equal("userid", userId),
+      Query.orderDesc("$createdAt"),
+    ]);
+    return lists;
+  } catch (error) {
+    console.log(console.log(error));
+    return error;
+  }
+};
+
+// Get all tasks by list id
+export const getListOfTasksByName = async (userId, listId) => {
+  try {
+    const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal("userid", userId),
+      Query.equal("list_id", listId),
       Query.orderDesc("$createdAt"),
     ]);
     return lists;
@@ -142,7 +164,7 @@ export const tasksDescByDate = async (userId) => {
 };
 
 // Filter tasks
-export const filterTaskList = async (userId, filters) => {
+export const filterTaskList = async (userId, filters, sorting = null) => {
   const queries = Object.keys(filters).reduce((acc, key) => {
     if (key === "status" && filters[key].length) {
       acc.push(Query.equal("status", filters[key]));
@@ -154,6 +176,26 @@ export const filterTaskList = async (userId, filters) => {
     return acc;
   }, []);
 
+  if (filters.list_id) {
+    queries.push(Query.equal("list_id", filters.list_id));
+  }
+
+  if (sorting) {
+    [...sorting].forEach((sort) => {
+      const key = sort[0];
+      const value = sort[1];
+      if (key === "status") {
+        queries.push(Query.orderAsc(key));
+      } else if (key === "priority") {
+        queries.push(Query.orderAsc(key));
+      } else if (key === "created_at") {
+        value === "asc"
+          ? queries.push(Query.orderAsc("$createdAt"))
+          : queries.push(Query.orderDesc("$createdAt"));
+      }
+    });
+  }
+
   try {
     const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
       Query.equal("userid", userId),
@@ -161,6 +203,7 @@ export const filterTaskList = async (userId, filters) => {
     ]);
     return list;
   } catch (error) {
+    console.log(error);
     return error;
   }
 };
