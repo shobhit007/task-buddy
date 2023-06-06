@@ -78,7 +78,6 @@ export const filteredList = (user, filters, sorting) => async (dispatch) => {
   dispatch(fetchTaskListStart());
   try {
     const { documents } = await filterTaskList(user.$id, filters, sorting);
-    console.log(documents);
     dispatch(fetchTaskListSuccess(documents));
   } catch (error) {
     dispatch(fetchTaskListFailed(error.message));

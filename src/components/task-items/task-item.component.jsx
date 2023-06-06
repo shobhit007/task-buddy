@@ -10,6 +10,13 @@ import {
 } from "lucide-react";
 
 import Popover from "../popover/popover.component";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectSeperator,
+} from "../select/select.component";
 
 import {
   completeTaskAsync,
@@ -58,7 +65,7 @@ function Task({ task }) {
     const data = {
       title: formFields.title,
       description: formFields.description,
-      priority: parseFloat(formFields.priority),
+      priority: parseInt(formFields.priority),
     };
     updateTaskAsync($id, data);
     setShowEdit(false);
@@ -128,102 +135,90 @@ function Task({ task }) {
                 <Popover>Set priority</Popover>
               </button>
               {showOptions && (
-                <div className="absolute top-full translate-y-2 left-1/2 -translate-x-1/2 w-max z-[10]">
-                  <div className="p-2 bg-white border border-gray-200 rounded shadow-xl shadow-gray-300">
-                    <label htmlFor="urgent" className="block relative w-full">
-                      <input
-                        id="urgent"
-                        type="radio"
-                        name="priority"
-                        className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                        value="urgent"
-                        onChange={handleOnChange}
-                      />
-                      <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                <Select left="0" x="0">
+                  <SelectContent>
+                    <SelectLabel
+                      label="Urgent"
+                      For="urgent"
+                      icon={
                         <FlagIcon
-                          size={14}
+                          size={12}
                           color="#dc2626"
                           fill="#dc2626"
                           className="mr-2"
                         />
-                        urgent
-                      </span>
-                    </label>
-                    <label htmlFor="high" className="block relative w-full">
-                      <input
-                        id="high"
+                      }
+                    >
+                      <SelectItem
+                        id="urgent"
                         type="radio"
                         name="priority"
-                        className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                        value="high"
+                        value="3"
                         onChange={handleOnChange}
                       />
-                      <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                    </SelectLabel>
+                    <SelectLabel
+                      label="High"
+                      For="high"
+                      icon={
                         <FlagIcon
-                          size={14}
+                          size={12}
                           color="#facc15"
                           fill="#facc15"
                           className="mr-2"
                         />
-                        High
-                      </span>
-                    </label>
-                    <label htmlFor="normal" className="block relative w-full">
-                      <input
-                        id="normal"
+                      }
+                    >
+                      <SelectItem
+                        id="high"
                         type="radio"
                         name="priority"
-                        className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                        value="normal"
+                        value="2"
                         onChange={handleOnChange}
                       />
-                      <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                    </SelectLabel>
+                    <SelectLabel
+                      label="Normal"
+                      For="normal"
+                      icon={
                         <FlagIcon
-                          size={14}
+                          size={12}
                           color="#38bdf8"
                           fill="#38bdf8"
                           className="mr-2"
                         />
-                        Normal
-                      </span>
-                    </label>
-                    <label htmlFor="low" className="block relative w-full">
-                      <input
-                        id="low"
+                      }
+                    >
+                      <SelectItem
+                        id="normal"
                         type="radio"
                         name="priority"
-                        className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                        value="low"
+                        value="1"
                         onChange={handleOnChange}
                       />
-                      <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                    </SelectLabel>
+                    <SelectLabel
+                      label="Low"
+                      For="low"
+                      icon={
                         <FlagIcon
-                          size={14}
+                          size={12}
                           color="#a3a3a3"
                           fill="#a3a3a3"
                           className="mr-2"
                         />
-                        Low
-                      </span>
-                    </label>
-                    <div className="py-2 border-t border-t-gray-200">
-                      <label htmlFor="no" className="block relative w-full">
-                        <input
-                          id="no"
-                          type="radio"
-                          name="priority"
-                          className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                          value="no"
-                          onChange={handleOnChange}
-                        />
-                        <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
-                          <Ban size={14} color="#a3a3a3" className="mr-2" />
-                          Clear
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                      }
+                    >
+                      <SelectItem
+                        id="low"
+                        type="radio"
+                        name="priority"
+                        value="0"
+                        onChange={handleOnChange}
+                      />
+                    </SelectLabel>
+                  </SelectContent>
+                </Select>
               )}
             </div>
           </div>
@@ -291,121 +286,111 @@ function Task({ task }) {
                       <Popover y="2">Set priority</Popover>
                     </button>
                     {showOptions && (
-                      <div className="absolute top-full translate-y-2 left-1/2 -translate-x-1/2 w-max z-[10]">
-                        <div className="p-2 bg-white border border-gray-200 rounded shadow-xl shadow-gray-300">
-                          <label
-                            htmlFor="urgent"
-                            className="block relative w-full"
-                          >
-                            <input
-                              id="urgent"
-                              type="radio"
-                              name="priority"
-                              className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                              value="3"
-                              onChange={handleOnChange}
-                            />
-                            <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                      <Select left="0" x="0">
+                        <SelectContent>
+                          <SelectLabel
+                            label="Urgent"
+                            For="urgent"
+                            icon={
                               <FlagIcon
-                                size={14}
+                                size={12}
                                 color="#dc2626"
                                 fill="#dc2626"
                                 className="mr-2"
                               />
-                              urgent
-                            </span>
-                          </label>
-                          <label
-                            htmlFor="high"
-                            className="block relative w-full"
+                            }
                           >
-                            <input
-                              id="high"
+                            <SelectItem
+                              id="urgent"
                               type="radio"
                               name="priority"
-                              className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                              value="2"
+                              value="3"
                               onChange={handleOnChange}
                             />
-                            <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                          </SelectLabel>
+                          <SelectLabel
+                            label="High"
+                            For="high"
+                            icon={
                               <FlagIcon
-                                size={14}
+                                size={12}
                                 color="#facc15"
                                 fill="#facc15"
                                 className="mr-2"
                               />
-                              High
-                            </span>
-                          </label>
-                          <label
-                            htmlFor="normal"
-                            className="block relative w-full"
+                            }
                           >
-                            <input
-                              id="normal"
+                            <SelectItem
+                              id="high"
                               type="radio"
                               name="priority"
-                              className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                              value="1"
+                              value="2"
                               onChange={handleOnChange}
                             />
-                            <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                          </SelectLabel>
+                          <SelectLabel
+                            label="Normal"
+                            For="normal"
+                            icon={
                               <FlagIcon
-                                size={14}
+                                size={12}
                                 color="#38bdf8"
                                 fill="#38bdf8"
                                 className="mr-2"
                               />
-                              Normal
-                            </span>
-                          </label>
-                          <label
-                            htmlFor="low"
-                            className="block relative w-full"
+                            }
                           >
-                            <input
-                              id="low"
+                            <SelectItem
+                              id="normal"
                               type="radio"
                               name="priority"
-                              className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                              value="0"
+                              value="1"
                               onChange={handleOnChange}
                             />
-                            <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                          </SelectLabel>
+                          <SelectLabel
+                            label="Low"
+                            For="low"
+                            icon={
                               <FlagIcon
-                                size={14}
+                                size={12}
                                 color="#a3a3a3"
                                 fill="#a3a3a3"
                                 className="mr-2"
                               />
-                              Low
-                            </span>
-                          </label>
-                          <div className="py-2 border-t border-t-gray-200">
-                            <label
-                              htmlFor="no"
-                              className="block relative w-full"
-                            >
-                              <input
-                                id="no"
-                                type="radio"
-                                name="priority"
-                                className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                                value="-1"
-                                onChange={handleOnChange}
-                              />
-                              <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
+                            }
+                          >
+                            <SelectItem
+                              id="low"
+                              type="radio"
+                              name="priority"
+                              value="0"
+                              onChange={handleOnChange}
+                            />
+                          </SelectLabel>
+                          <SelectSeperator>
+                            <SelectLabel
+                              label="Clear"
+                              For="no"
+                              icon={
                                 <Ban
-                                  size={14}
+                                  size={12}
                                   color="#a3a3a3"
                                   className="mr-2"
                                 />
-                                Clear
-                              </span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
+                              }
+                            >
+                              <SelectItem
+                                id="no"
+                                type="radio"
+                                name="priority"
+                                value="-1"
+                                onChange={handleOnChange}
+                              />
+                            </SelectLabel>
+                          </SelectSeperator>
+                        </SelectContent>
+                      </Select>
                     )}
                   </div>
                 </div>
