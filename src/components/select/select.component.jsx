@@ -1,42 +1,72 @@
-export const Select = ({ children, left = "1/2", x = "1/2", y }) => {
+import React, { createContext, forwardRef, useContext, useState } from "react";
+import {
+  useFloating,
+  useClick,
+  useInteractions,
+  useMergeRefs,
+  offset,
+  autoUpdate,
+} from "@floating-ui/react";
+import Portal from "../portal/portal.component";
+import { Overlay, OverlayHandler } from "../overlay/overlay.component";
+
+const SelectContext = createContext();
+
+const useSelectContext = () => useContext(SelectContext);
+
+export const Select = ({ children, placement = "bottom", offsetY = 14 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+    middleware: [offset(offsetY)],
+    whileElementsMounted: autoUpdate,
+    placement,
+  });
+
+  const click = useClick(context);
+
+  const interactions = useInteractions([click]);
+
+  const options = { refs, floatingStyles, ...interactions, isOpen, setIsOpen };
+
   return (
-    <div
-      className={`absolute py-4 top-full left-${left} -translate-x-${x} z-[100] ${y}`}
-    >
-      {children}
-    </div>
+    <SelectContext.Provider value={options}>{children}</SelectContext.Provider>
   );
 };
 
-export const SelectContent = ({ children }) => {
-  return (
-    <div className="min-w-[192px] p-2 bg-white border border-gray-200 rounded shadow-xl shadow-gray-300">
-      {children}
-    </div>
-  );
-};
+export const SelectTrigger = forwardRef(({ children, ...props }, parentRef) => {
+  const { refs, getReferenceProps } = useSelectContext();
 
-export const SelectLabel = ({ children, label, For, icon }) => {
-  return (
-    <label htmlFor={For} className="block relative w-full">
-      {children}
-      <span className="peer-hover:bg-slate-200 relative w-full block text-left text-sm p-2 rounded-sm flex items-center justify-start">
-        {icon}
-        {label}
-      </span>
-    </label>
-  );
-};
+  const ref = useMergeRefs([refs.setReference, children.ref, parentRef]);
 
-export const SelectItem = (props) => {
-  return (
-    <input
-      {...props}
-      className="peer absolute z-[1] cursor-pointer inset-0 opacity-0"
-    />
+  return React.cloneElement(
+    children,
+    getReferenceProps({ ref, ...children.props, ...props })
   );
-};
+});
 
-export const SelectSeperator = ({ children }) => {
-  return <div className="border-t pt-2 border-gray-200">{children}</div>;
+export const SelectContent = ({ renderItem = () => {} }) => {
+  const { refs, getFloatingProps, floatingStyles, isOpen, setIsOpen } =
+    useSelectContext();
+  const ref = refs.setFloating;
+
+  const onClose = () => setIsOpen(false);
+
+  return (
+    <Portal>
+      <Overlay open={isOpen}>
+        <OverlayHandler onClose={onClose}></OverlayHandler>
+        <div
+          ref={ref}
+          {...getFloatingProps()}
+          style={floatingStyles}
+          className="absolute z-[1000] min-w-[192px] rounded overflow-hidden bg-white shadow-md border border-gray-100"
+        >
+          {renderItem(onClose)}
+        </div>
+      </Overlay>
+    </Portal>
+  );
 };

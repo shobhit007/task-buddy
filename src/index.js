@@ -8,6 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import { UserProvider } from "./context/user.context";
 import { TaskProvider } from "./context/tasks/tasks.context";
+import { AppProvider } from "./context/app/app.context";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -15,7 +16,9 @@ root.render(
     <BrowserRouter>
       <UserProvider>
         <TaskProvider>
-          <App />
+          <AppProvider>
+            <App />
+          </AppProvider>
         </TaskProvider>
       </UserProvider>
     </BrowserRouter>

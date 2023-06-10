@@ -15,7 +15,6 @@ export const TaskContext = createContext({
 
 export function TaskProvider({ children }) {
   const [state, dispatch] = useReducer(taskReducer, INITIAL_STATE);
-
   const { taskList, loading, errorMessage, filters, userLists } = state;
 
   const value = {

@@ -22,9 +22,14 @@ const DATABASE_ID = "6472f275b59ed08821bc";
 const COLLECTION_ID = "647de6c2d35a22e34b6a";
 const LIST_COLLECTION_ID = "647b2931a770730c8329";
 
-// client.subscribe("databases.*.collections.*", (res) => {
-//   console.log(res);
-// });
+export const listenChanges = (callback) =>
+  client.subscribe(
+    [
+      "databases.6472f275b59ed08821bc.collections.647de6c2d35a22e34b6a.documents",
+      "databases.6472f275b59ed08821bc.collections.647b2931a770730c8329.documents",
+    ],
+    callback
+  );
 
 // Create an account
 export const createUserAccount = (email, password, name) =>
@@ -91,8 +96,13 @@ export const deleteTask = async (taskId) => {
   }
 };
 
+// Update task priority
+export const updateTaskPriority = async (taskId, priority) =>
+  await db.updateDocument(DATABASE_ID, COLLECTION_ID, taskId, { priority });
+
+// Update task status
 export const updateTaskStatus = async (taskId, status) =>
-  db.updateDocument(DATABASE_ID, COLLECTION_ID, taskId, { status });
+  await db.updateDocument(DATABASE_ID, COLLECTION_ID, taskId, { status });
 
 // update a task
 export const updateTask = async (taskId, data) => {
@@ -107,6 +117,14 @@ export const updateTask = async (taskId, data) => {
   } catch (error) {
     return error;
   }
+};
+
+// Search tasks
+export const searchTask = async (userid, searchInput) => {
+  return await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
+    Query.equal("userid", userid),
+    Query.search("title", searchInput),
+  ]);
 };
 
 // Get all tasks
@@ -168,8 +186,8 @@ export const filterTaskList = async (userId, filters, sorting = null) => {
   const queries = Object.keys(filters).reduce((acc, key) => {
     if (key === "status" && filters[key].length) {
       acc.push(Query.equal("status", filters[key]));
-    } else if (key === "selectedDate" && filters[key] !== null) {
-      acc.push(Query.equal("created_at", filters[key].toLocaleDateString()));
+    } else if (key === "selectedDate" && filters[key].length) {
+      acc.push(Query.equal("created_at", filters[key]));
     } else if (key === "priorities" && filters[key].size > 0) {
       acc.push(Query.equal("priority", [...filters[key]]));
     }
@@ -183,13 +201,17 @@ export const filterTaskList = async (userId, filters, sorting = null) => {
   if (sorting) {
     [...sorting].forEach((sort) => {
       const key = sort[0];
-      const value = sort[1];
+      const order = sort[1];
       if (key === "status") {
-        queries.push(Query.orderAsc(key));
+        order === "asc"
+          ? queries.push(Query.orderAsc(key))
+          : queries.push(Query.orderDesc(key));
       } else if (key === "priority") {
-        queries.push(Query.orderAsc(key));
+        order === "desc"
+          ? queries.push(Query.orderDesc(key))
+          : queries.push(Query.orderAsc(key));
       } else if (key === "created_at") {
-        value === "asc"
+        order === "asc"
           ? queries.push(Query.orderAsc("$createdAt"))
           : queries.push(Query.orderDesc("$createdAt"));
       }

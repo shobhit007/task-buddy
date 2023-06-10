@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useReducer, useState } from "react";
 
 import {
   Ban,
@@ -10,25 +10,20 @@ import {
 } from "lucide-react";
 
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "../popover/popover.component";
-
-import {
-  // completeTaskAsync,
+  completeTaskAsync,
   deleteTaskAsync,
   updateTaskAsync,
   updateTaskStatusAsync,
+  updateTaskPriorityAsync,
 } from "../../context/tasks/tasks.action";
+
+import Tooltip from "../tooltip/tooltip.component";
+
 import {
-  DropDownContent,
-  DropDownFooter,
-  DropDownItem,
-} from "../dropdown/dropdown.component";
-import Portal from "../portal/portal.component";
-import { Overlay, OverlayHandler } from "../overlay/overlay.component";
-import { useFloating, autoUpdate } from "@floating-ui/react";
+  Select,
+  SelectContent,
+  SelectTrigger,
+} from "../select/select.component";
 
 const priorityColors = {
   3: "#ef4444",
@@ -37,48 +32,85 @@ const priorityColors = {
   0: "#6b7280",
 };
 
+const options = [
+  {
+    key: 3,
+    value: "Urgent",
+  },
+  {
+    key: 2,
+    value: "High",
+  },
+  {
+    key: 1,
+    value: "Normal",
+  },
+  {
+    key: 0,
+    value: "Low",
+  },
+];
+
+const priorities = {
+  3: "Urgent",
+  2: "High",
+  1: "Normal",
+  0: "Low",
+};
+
+const reducer = (state, action) => {
+  const { type, payload } = action;
+
+  switch (type) {
+    case "SET_INPUT_VALUE":
+      return { ...state, [payload.name]: payload.value };
+    case "SET_PRIORITY":
+      return { ...state, priority: payload };
+    default:
+      return state;
+  }
+};
+
 function Task({ task }) {
   const { title, priority, description, status, $createdAt, $id, list_name } =
     task;
   const [showEdit, setShowEdit] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
-  const [formFields, setFormFields] = useState({
+  const [state, dispatch] = useReducer(reducer, {
     title,
     description,
     priority,
-  });
-
-  // Floating UI
-  const [anchorEl1, setAnchorEl1] = useState();
-  const [anchorEl2, setAnchorEl2] = useState();
-  const { refs, floatingStyles } = useFloating({
-    whileElementsMounted: autoUpdate,
-    elements: { reference: showEdit ? anchorEl2 : anchorEl1 },
   });
 
   const date = new Date($createdAt).toLocaleDateString();
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
-    setFormFields((preValues) => ({ ...preValues, [name]: value }));
-
-    if (name === "priority") setShowOptions(false);
+    dispatch({ type: "SET_INPUT_VALUE", payload: { name, value } });
   };
 
-  // const handleCompleteTask = () => completeTaskAsync($id);
+  const handlePriority = (key, callback) => {
+    dispatch({ type: "SET_PRIORITY", payload: key });
+
+    if (priority !== key) {
+      updateTaskPriorityAsync($id, key);
+    }
+    callback();
+  };
+
+  const handleCompleteTask = () => completeTaskAsync($id);
 
   const handleDeleteTask = () => deleteTaskAsync($id);
 
   const handleUpdateTask = () => {
-    if (!formFields.title || !formFields.description) {
+    if (!state.title || !state.description) {
       console.log("fields are required");
       return;
     }
 
     const data = {
-      title: formFields.title,
-      description: formFields.description,
-      priority: parseInt(formFields.priority),
+      title: state.title,
+      description: state.description,
+      priority: parseInt(state.priority),
     };
     updateTaskAsync($id, data);
     setShowEdit(false);
@@ -90,7 +122,7 @@ function Task({ task }) {
   return (
     <Fragment>
       <div
-        aria-expanded={showOptions ? "true" : "false"}
+        aria-expanded={"false"}
         className={`group bg-white p-3 rounded shadow hover:shadow-md hover:shadow-gray-300 h-max border-t-2 ${
           status === "pending" ? "border-gray-300" : "border-green-300"
         }`}
@@ -107,73 +139,89 @@ function Task({ task }) {
         <div className="flex justify-between border-t border-gray-100 opacity-0 invisible h-0 group-hover:opacity-100 group-hover:visible group-hover:h-max group-aria-[expanded=true]:opacity-100 group-aria-[expanded=true]:visible group-aria-[expanded=true]:h-max">
           <div className="flex gap-x-2 items-center">
             {status !== "complete" && (
-              <Tooltip>
-                <TooltipTrigger>
-                  <button className="group/button">
-                    <Check
-                      size={15}
-                      className="group-hover/button:text-green-600 material-symbols-outlined font-bold text-gray-500"
-                    />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>Complete task</TooltipContent>
+              <Tooltip content="Complete task">
+                <button className="group/button" onClick={handleCompleteTask}>
+                  <Check
+                    size={15}
+                    className="group-hover/button:text-green-600 material-symbols-outlined font-bold text-gray-500"
+                  />
+                </button>
               </Tooltip>
             )}
-            <Tooltip>
-              <TooltipTrigger>
-                <button
-                  className="relative group/button"
-                  onClick={() => setShowEdit(true)}
-                >
-                  <Pencil
-                    size={14}
-                    className="group-hover/button:text-blue-600 material-symbols-outlined font-medium text-gray-500"
-                  />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Edit</TooltipContent>
+            <Tooltip content="Edit">
+              <button
+                className="group/button"
+                onClick={() => setShowEdit(true)}
+              >
+                <Pencil
+                  size={14}
+                  className="group-hover/button:text-blue-600 material-symbols-outlined font-medium text-gray-500"
+                />
+              </button>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger>
-                <button
-                  onClick={() => setShowOptions((p) => !p)}
-                  className="relative group/button"
-                  ref={setAnchorEl1}
-                >
-                  <FlagIcon
-                    size={14}
-                    fill={
-                      priorityColors[formFields.priority]
-                        ? priorityColors[formFields.priority]
-                        : "transparent"
-                    }
-                    className={`text-gray-500 font-medium group-hover/button:text-blue-600`}
-                  />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Set priority</TooltipContent>
-            </Tooltip>
+            <Select>
+              <SelectTrigger>
+                <Tooltip content="Priority">
+                  <button className="group/button h-full">
+                    <FlagIcon
+                      size={14}
+                      fill={
+                        priorityColors[state.priority]
+                          ? priorityColors[state.priority]
+                          : "transparent"
+                      }
+                      className={`text-gray-500 font-medium group-hover/button:text-${
+                        priorityColors[state.priority]
+                      }`}
+                    />
+                  </button>
+                </Tooltip>
+              </SelectTrigger>
+              <SelectContent
+                renderItem={(onClose) => (
+                  <div className="p-2">
+                    {options.map(({ key, value }) => (
+                      <button
+                        key={key}
+                        className="block w-full flex items-center justify-start p-2 rounded hover:bg-slate-200 text-sm"
+                        onClick={() => handlePriority(key, onClose)}
+                      >
+                        <FlagIcon
+                          size={14}
+                          fill={priorityColors[key]}
+                          color={priorityColors[key]}
+                          className="mr-2"
+                        />
+                        {value}
+                      </button>
+                    ))}
+                    <div className="mt-2 pt-0.5 border-t border-gray-100">
+                      <button
+                        onClick={() => handlePriority(-1, onClose)}
+                        className="block w-full flex items-center justify-start p-2 rounded hover:bg-slate-200 text-sm mt-0.5"
+                      >
+                        <Ban size={14} className="text-gray-500 mr-2" />
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                )}
+              />
+            </Select>
           </div>
-          <Tooltip>
-            <TooltipTrigger>
-              <button
-                className="relative group/button"
-                onClick={handleDeleteTask}
-              >
-                <Trash2
-                  size={14}
-                  className="group-hover/button:text-red-600 material-symbols-outlined text-base font-medium text-gray-500"
-                >
-                  delete
-                </Trash2>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Delete</TooltipContent>
+
+          <Tooltip content="Delete">
+            <button className="group/button" onClick={handleDeleteTask}>
+              <Trash2
+                size={14}
+                className="group-hover/button:text-red-600 material-symbols-outlined text-base font-medium text-gray-500"
+              />
+            </button>
           </Tooltip>
         </div>
       </div>
-      {/* overlay */}
+      {/* Edit Modal */}
       {showEdit && (
         <div className="fixed inset-0 w-full h-full z-10">
           <div className="py-20 relative h-screen bg-[rgba(0,0,0,0.2)] backdrop-blur-sm">
@@ -199,44 +247,84 @@ function Task({ task }) {
                     <span className="text-sm font-medium text-white">
                       {status}
                     </span>
-                    <button
-                      className="relative group/button p-0.5 border-l"
-                      onClick={handleUpdateTaskStatus}
+                    <Tooltip
+                      offsetY={16}
+                      content={`Next status [${
+                        status === "complete" ? "Pending" : "Complete"
+                      }]`}
                     >
-                      <StepForward size={16} className="text-white" />
-                      {/* <Popover y="6">{`Next status [${
-                        status === "complete" ? "pending" : "complete"
-                      }]`}</Popover> */}
-                    </button>
+                      <button
+                        className="group/button p-0.5 border-l"
+                        onClick={handleUpdateTaskStatus}
+                      >
+                        <StepForward size={16} className="text-white" />
+                      </button>
+                    </Tooltip>
                   </div>
-                  <div className="relative" ref={setAnchorEl2}>
-                    <button
-                      onClick={() => setShowOptions((p) => !p)}
-                      className="group/button w-10 h-10 rounded-[50%] border-2 border-dashed flex items-center justify-center ml-2"
-                    >
-                      <FlagIcon
-                        size={16}
-                        fill={
-                          priorityColors[formFields.priority]
-                            ? priorityColors[formFields.priority]
-                            : "transparent"
+                  <Select>
+                    <SelectTrigger>
+                      <Tooltip
+                        content={
+                          priorities[state.priority]
+                            ? `Priority ${priorities[state.priority]}`
+                            : "Select priority"
                         }
-                        className={`text-gray-500 font-medium group-hover/button:text-blue-600`}
-                      />
-                      {/* <Popover y="2">Set priority</Popover> */}
-                    </button>
-                  </div>
+                      >
+                        <button
+                          className={`group/button w-10 h-10 rounded-[50%] flex items-center justify-center ml-2 border border-[${
+                            priorityColors[state.priority]
+                          }]`}
+                        >
+                          <FlagIcon
+                            size={14}
+                            fill={
+                              priorityColors[state.priority] || "transparent"
+                            }
+                            color={priorityColors[state.priority]}
+                          />
+                        </button>
+                      </Tooltip>
+                    </SelectTrigger>
+                    <SelectContent
+                      renderItem={(onClose) => (
+                        <div className="p-2">
+                          {options.map(({ key, value }) => (
+                            <button
+                              key={key}
+                              className="block w-full flex items-center justify-start p-2 rounded hover:bg-slate-200 text-sm"
+                              onClick={() => handlePriority(key, onClose)}
+                            >
+                              <FlagIcon
+                                size={14}
+                                fill={priorityColors[key]}
+                                color={priorityColors[key]}
+                                className="mr-2"
+                              />
+                              {value}
+                            </button>
+                          ))}
+                          <div className="mt-2 pt-0.5 border-t border-gray-100">
+                            <button
+                              onClick={() => handlePriority(-1, onClose)}
+                              className="block w-full flex items-center justify-start p-2 rounded hover:bg-slate-200 text-sm mt-0.5"
+                            >
+                              <Ban size={14} className="text-gray-500 mr-2" />
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    />
+                  </Select>
                 </div>
-                <button
-                  className="relative group/button"
-                  onClick={handleDeleteTask}
-                >
-                  <Trash2
-                    size={16}
-                    className="text-gray-400 group-hover/button:text-red-600"
-                  />
-                  {/* <Popover y="6">Delete</Popover> */}
-                </button>
+                <Tooltip content="Delete">
+                  <button className="group/button" onClick={handleDeleteTask}>
+                    <Trash2
+                      size={16}
+                      className="text-gray-400 group-hover/button:text-red-600"
+                    />
+                  </button>
+                </Tooltip>
               </div>
               <div className="px-10">
                 <div className="border-b border-b-gray-200 py-3 flex items-center justify-between">
@@ -250,7 +338,7 @@ function Task({ task }) {
                     type="text"
                     placeholder="Title"
                     name="title"
-                    value={formFields.title}
+                    value={state.title}
                     onChange={handleOnChange}
                     className="p-3 w-full focus:outline-none border border-transparent rounded hover:border-gray-300 focus:border-gray-300"
                   />
@@ -258,7 +346,7 @@ function Task({ task }) {
                     placeholder="Description"
                     rows={3}
                     name="description"
-                    value={formFields.description}
+                    value={state.description}
                     onChange={handleOnChange}
                     className="w-full focus:outline-none p-3 mt-3 border border-transparent rounded hover:border-gray-300 focus:border-gray-300"
                   />
@@ -274,70 +362,6 @@ function Task({ task }) {
           </div>
         </div>
       )}
-
-      <Portal>
-        <Overlay open={showOptions}>
-          <OverlayHandler
-            onClose={() => setShowOptions(false)}
-          ></OverlayHandler>
-          <div
-            className="absolute z-[1000]"
-            ref={refs.setFloating}
-            style={floatingStyles}
-          >
-            <DropDownContent>
-              <DropDownItem>
-                <button className="w-full p-2 flex items-center rounded hover:bg-gray-200">
-                  <FlagIcon
-                    size={14}
-                    fill="#ef4444"
-                    className="mr-2 text-red-500"
-                  />
-                  <span className="text-sm text-gray-800">Urgent</span>
-                </button>
-              </DropDownItem>
-              <DropDownItem>
-                <button className="w-full p-2 flex items-center rounded hover:bg-gray-200">
-                  <FlagIcon
-                    size={14}
-                    fill="#facc15"
-                    className="mr-2 text-yellow-400"
-                  />
-                  <span className="text-sm text-gray-800">High</span>
-                </button>
-              </DropDownItem>
-              <DropDownItem>
-                <button className="w-full p-2 flex items-center rounded hover:bg-gray-200">
-                  <FlagIcon
-                    size={14}
-                    fill="#3b82f6"
-                    className="mr-2 text-blue-500"
-                  />
-                  <span className="text-sm text-gray-800">Normal</span>
-                </button>
-              </DropDownItem>
-              <DropDownItem>
-                <button className="w-full p-2 flex items-center rounded hover:bg-gray-200">
-                  <FlagIcon
-                    size={14}
-                    fill="#6b7280"
-                    className="mr-2 text-gray-500"
-                  />
-                  <span className="text-sm text-gray-800">Low</span>
-                </button>
-              </DropDownItem>
-              <DropDownFooter>
-                <DropDownItem>
-                  <button className="w-full p-2 flex items-center rounded hover:bg-gray-200">
-                    <Ban size={14} className="mr-2 text-gray-500" />
-                    <span className="text-sm text-gray-800">Low</span>
-                  </button>
-                </DropDownItem>
-              </DropDownFooter>
-            </DropDownContent>
-          </div>
-        </Overlay>
-      </Portal>
     </Fragment>
   );
 }

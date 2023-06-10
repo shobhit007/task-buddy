@@ -13,6 +13,8 @@ import {
   getUserLists,
   getListOfTasksByName,
   updateTaskStatus,
+  updateTaskPriority,
+  searchTask,
 } from "../../utils/api/appwrite.api";
 
 const fetchTaskListStart = () => ({ type: TASKS_TYPES.FETCH_TASKS_START });
@@ -74,6 +76,16 @@ export const fetchTaskListDesc = (user) => async (dispatch) => {
   }
 };
 
+// Search task
+export const searchTaskAsync = async (userid, searchInput) => {
+  try {
+    const { documents } = await searchTask(userid, searchInput);
+    console.log(documents);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const filteredList = (user, filters, sorting) => async (dispatch) => {
   dispatch(fetchTaskListStart());
   try {
@@ -88,6 +100,16 @@ export const filteredList = (user, filters, sorting) => async (dispatch) => {
 export const createTask = async (user, data) => {
   try {
     const task = await createNewTask(user.$id, data);
+    console.log(task);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// Update a task priority
+export const updateTaskPriorityAsync = async (taskId, priority) => {
+  try {
+    const task = await updateTaskPriority(taskId, priority);
     console.log(task);
   } catch (error) {
     console.log(error);

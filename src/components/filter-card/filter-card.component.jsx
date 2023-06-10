@@ -1,20 +1,25 @@
-import React, { Fragment, useReducer, useState } from "react";
-
-import FilterCardRow from "../filter-card-row/filter-card-row.component";
+import React, { useReducer, useState } from "react";
 
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import "../../calendar.css";
 
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+} from "../select/select.component";
+import { CalendarDays, Check, Flag } from "lucide-react";
+
 const priorityColors = {
-  urgent: "text-red-600",
-  high: "text-yellow-600",
-  normal: "text-blue-600",
-  low: "text-gray-600",
+  3: "#ef4444",
+  2: "#facc15",
+  1: "#3b82f6",
+  0: "#6b7280",
 };
 
 const INITIAL_STATE = {
-  date: null,
+  date: "",
   status: "",
   priorities: new Set(),
 };
@@ -24,6 +29,39 @@ const ACTION_TYPES = {
   SET_STATUS: "SET_STATUS",
   SET_PRIORITY: "SET_PRIORITY",
 };
+
+const priorityOptions = [
+  {
+    key: "urgent",
+    name: "Urgent",
+    value: 3,
+    color: "red-600",
+  },
+  {
+    key: "high",
+    name: "High",
+    value: 2,
+    color: "yellow-400",
+  },
+  {
+    key: "normal",
+    name: "Normal",
+    value: 1,
+    color: "blue-500",
+  },
+  {
+    key: "low",
+    name: "Low",
+    value: 0,
+    color: "gray-500",
+  },
+  {
+    key: "no",
+    name: "No priority",
+    value: -1,
+    color: "transparent",
+  },
+];
 
 const reducer = (state, action) => {
   const { type, payload } = action;
@@ -40,18 +78,32 @@ const reducer = (state, action) => {
   }
 };
 
+const Flags = ({ priorityMap }) => {
+  return (
+    <span className="flex items-center gap-0.5">
+      {[...priorityMap].map((value) => (
+        <Flag
+          key={value}
+          fill={
+            priorityColors[value] ? `${priorityColors[value]}` : "transparent"
+          }
+          className={`text-${priorityColors[value]}`}
+          size={14}
+        />
+      ))}
+    </span>
+  );
+};
+
 function FilterCard({ closeFilterCard, onChangeFilter }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
-  const [showOptions, setShowOptions] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
   const { date, priorities, status } = state;
 
   const isSelected = (value) => value === status;
-  const isChecked = (value) => priorities.has(value);
 
-  const setPriorities = (e) => {
-    const { value } = e.target;
+  const setPriorities = (value, callback) => {
     const updatedPriorities = new Set(priorities);
 
     if (updatedPriorities.has(value)) {
@@ -61,17 +113,20 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
     }
 
     dispatch({ type: ACTION_TYPES.SET_PRIORITY, payload: updatedPriorities });
+    callback();
   };
 
-  const setStatus = (e) => {
-    const { value } = e.target;
+  const setStatus = (value, callback) => {
     dispatch({ type: ACTION_TYPES.SET_STATUS, payload: value });
-    setShowOptions(false);
+    callback();
   };
 
-  const setDate = () => {
-    selectedDate &&
-      dispatch({ type: ACTION_TYPES.SET_DATE, payload: selectedDate });
+  const setDate = (callback) => {
+    dispatch({
+      type: ACTION_TYPES.SET_DATE,
+      payload: selectedDate.toLocaleDateString(),
+    });
+    callback();
   };
 
   const handleFilterTasks = () => {
@@ -79,13 +134,10 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
       console.log("select at least one filter");
       return;
     }
-
-    let convertedPriorities = [...priorities].map((val) => parseInt(val));
-
     onChangeFilter({
       status,
       selectedDate: date,
-      priorities: new Set(convertedPriorities),
+      priorities,
     });
   };
 
@@ -101,408 +153,123 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
           </button>
         </div>
         <h2 className="text-xl text-gray-800 font-medium">Filters</h2>
-        {/* Filter Row */}
-        <FilterCardRow
-          label="Status:"
-          buttonlabel={
-            <Fragment>
-              <span className="text-sm font-normal text-gray-700">
-                {status ? status : "Select status"}
-              </span>
-              <span className="material-symbols-outlined text-lg">
-                {showOptions ? "expand_less" : "expand_more"}
-              </span>
-            </Fragment>
-          }
-        >
-          <div className="absolute top-full left-0 w-full z-[10]">
-            <div className="p-2 bg-white border border-gray-200 rounded shadow-xl shadow-gray-300">
-              <label htmlFor="pending" className="block relative w-full">
-                <input
-                  id="pending"
-                  type="radio"
-                  name="status"
-                  className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="pending"
-                  onChange={setStatus}
-                />
-                <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                  Pending
-                  {isSelected("pending") && (
-                    <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                      check
-                    </span>
-                  )}
-                </span>
-              </label>
-              <label htmlFor="complete" className="block relative w-full">
-                <input
-                  id="complete"
-                  type="radio"
-                  name="status"
-                  className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="complete"
-                  onChange={setStatus}
-                />
-                <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                  Complete
-                  {isSelected("complete") && (
-                    <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                      check
-                    </span>
-                  )}
-                </span>
-              </label>
-            </div>
-          </div>
-        </FilterCardRow>
 
-        {/* <div className="flex justify-start items-center py-3">
-          <span className="text-sm font-medium mr-10">Status:</span>
-          <div className="relative w-max">
-            <div className="flex">
-              <button
-                className="relative flex items-center justify-between border border-gray-400 py-0.5 px-2 w-[200px] rounded"
-                onClick={() => setShowOptions((p) => !p)}
-              >
-                <span className="text-sm font-normal text-gray-700">
-                  {status ? status : "Select status"}
-                </span>
-                <span className="material-symbols-outlined text-lg">
-                  {showOptions ? "expand_less" : "expand_more"}
-                </span>
-              </button>
-              {status && (
-                <button
-                  className="p-0 text-xs font-medium flex items-end ml-2"
-                  onClick={() =>
-                    dispatch({ type: ACTION_TYPES.SET_STATUS, payload: "" })
-                  }
-                >
-                  clear
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-6">
+            <span className="text-sm font-medium text-black">Status:</span>
+            <Select placement="bottom" offsetY={8}>
+              <SelectTrigger>
+                <button className="w-48 text-left border border-gray-400 rounded text-sm text-gray-700 p-2 ml-8">
+                  {status || "Select status"}
                 </button>
-              )}
-            </div>
-
-            {showOptions && (
-              <div className="absolute top-full left-0 w-full py-2 z-[10]">
-                <div className="p-2 bg-white border border-gray-200 rounded shadow-xl shadow-gray-300">
-                  <label htmlFor="pending" className="block relative w-full">
-                    <input
-                      id="pending"
-                      type="radio"
-                      name="status"
-                      className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                      value="pending"
-                      onChange={setStatus}
-                    />
-                    <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                      Pending
-                      {isSelected("pending") && (
-                        <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                          check
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                  <label htmlFor="complete" className="block relative w-full">
-                    <input
-                      id="complete"
-                      type="radio"
-                      name="status"
-                      className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                      value="complete"
-                      onChange={setStatus}
-                    />
-                    <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
+              </SelectTrigger>
+              <SelectContent
+                renderItem={(onClose) => (
+                  <div className="flex flex-col gap-2 p-2">
+                    <button
+                      className="w-full p-2 hover:bg-slate-100 rounded text-sm text-left flex items-center"
+                      onClick={() => setStatus("complete", onClose)}
+                    >
                       Complete
                       {isSelected("complete") && (
-                        <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                          check
-                        </span>
+                        <Check size={14} className="text-blue-500 ml-auto" />
                       )}
-                    </span>
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
-        </div> */}
-
-        {/* Filter Row */}
-        <FilterCardRow
-          label="Priorities:"
-          buttonlabel={
-            <span className="text-sm font-normal text-gray-700 w-full text-left">
-              {!priorities.size ? (
-                "Select priorities"
-              ) : (
-                <span className="block flex justify-start gap-0.5">
-                  {[...priorities].map((item) => (
-                    <span
-                      key={item}
-                      className={`text-sm font-medium px-0.5 ${priorityColors[item]}`}
+                    </button>
+                    <button
+                      className="w-full p-2 hover:bg-slate-100 rounded text-sm text-left flex items-center"
+                      onClick={() => setStatus("pending", onClose)}
                     >
-                      {item}
-                    </span>
-                  ))}
-                </span>
-              )}
-            </span>
-          }
-        >
-          <div className="absolute top-full left-0 w-full z-[10]">
-            <div className="p-2 bg-white border border-gray-200 rounded-md shadow-lg">
-              <label htmlFor="urgent" className="block relative w-full">
-                <input
-                  id="urgent"
-                  type="checkbox"
-                  name="priority"
-                  className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="3"
-                  onChange={setPriorities}
-                />
-                <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                  Urgent
-                  {isChecked("urgent") && (
-                    <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                      check
-                    </span>
-                  )}
-                </span>
-              </label>
-              <label htmlFor="high" className="block relative w-full">
-                <input
-                  id="high"
-                  type="checkbox"
-                  name="priority"
-                  className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="2"
-                  onChange={setPriorities}
-                />
-                <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                  High
-                  {isChecked("high") && (
-                    <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                      check
-                    </span>
-                  )}
-                </span>
-              </label>
-              <label htmlFor="normal" className="block relative w-full">
-                <input
-                  id="normal"
-                  type="checkbox"
-                  name="priority"
-                  className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="1"
-                  onChange={setPriorities}
-                />
-                <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                  Normal
-                  {isChecked("normal") && (
-                    <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                      check
-                    </span>
-                  )}
-                </span>
-              </label>
-              <label htmlFor="low" className="block relative w-full">
-                <input
-                  id="low"
-                  type="checkbox"
-                  name="priority"
-                  className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                  value="0"
-                  onChange={setPriorities}
-                />
-                <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                  Low
-                  {isChecked("low") && (
-                    <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                      check
-                    </span>
-                  )}
-                </span>
-              </label>
-            </div>
-          </div>
-        </FilterCardRow>
-
-        {/* <div className="relative flex justify-start items-center py-2">
-          <span className="text-sm font-medium mr-5">Priorities:</span>
-          <div className="relative">
-            <button
-              className="relative flex items-center justify-between border border-gray-400 py-2 px-3 w-[200px] rounded"
-              onClick={() => setShowPriorities((p) => !p)}
-            >
-              <span className="text-sm font-normal text-gray-700 w-full text-left">
-                {!priorities.size ? (
-                  "Select priorities"
-                ) : (
-                  <span className="block flex justify-start gap-0.5">
-                    {[...priorities].map((item) => (
-                      <span
-                        key={item}
-                        className={`text-sm font-medium px-0.5 ${priorityColors[item]}`}
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </span>
+                      Pending
+                      {isSelected("pending") && (
+                        <Check size={14} className="text-blue-500 ml-auto" />
+                      )}
+                    </button>
+                  </div>
                 )}
-              </span>
-            </button>
-            {showPriorities && (
-              <div className="absolute top-full left-0 w-full py-3 z-[10]">
-                <div className="p-2 bg-white border border-gray-200 rounded-md shadow-lg">
-                  <label htmlFor="urgent" className="block relative w-full">
-                    <input
-                      id="urgent"
-                      type="checkbox"
-                      name="priority"
-                      className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                      value="urgent"
-                      onChange={setPriorities}
-                    />
-                    <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                      Urgent
-                      {isChecked("urgent") && (
-                        <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                          check
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                  <label htmlFor="high" className="block relative w-full">
-                    <input
-                      id="high"
-                      type="checkbox"
-                      name="priority"
-                      className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                      value="high"
-                      onChange={setPriorities}
-                    />
-                    <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                      High
-                      {isChecked("high") && (
-                        <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                          check
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                  <label htmlFor="normal" className="block relative w-full">
-                    <input
-                      id="normal"
-                      type="checkbox"
-                      name="priority"
-                      className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                      value="normal"
-                      onChange={setPriorities}
-                    />
-                    <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                      Normal
-                      {isChecked("normal") && (
-                        <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                          check
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                  <label htmlFor="low" className="block relative w-full">
-                    <input
-                      id="low"
-                      type="checkbox"
-                      name="priority"
-                      className="peer absolute inset-0 z-[2] opacity-0 cursor-pointer"
-                      value="low"
-                      onChange={setPriorities}
-                    />
-                    <span className="peer-hover:bg-slate-200 relative z-[1] w-full block text-left text-sm font-medium p-2 rounded-sm flex items-center justify-between">
-                      Low
-                      {isChecked("low") && (
-                        <span className="material-symbols-outlined text-xl font-semibold text-blue-600">
-                          check
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
-        </div> */}
-
-        {/* Filter Row */}
-        <FilterCardRow
-          label="Exact date:"
-          icon={
-            <span className="material-symbols-outlined text-xl mr-1">
-              calendar_month
-            </span>
-          }
-          buttonlabel={
-            <span className="text-sm font-normal w-full text-left">
-              {date ? date.toLocaleDateString() : "Select date"}
-            </span>
-          }
-        >
-          <div className="absolute top-full right-0 z-[10]">
-            <div className="relative bg-white rounded-md shadow-lg border border-gray-200">
-              <DayPicker
-                mode="single"
-                showOutsideDays
-                required
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                modifiersClassNames={{ today: "today", selected: "selected" }}
-                fromYear={new Date().getFullYear()}
               />
-              <button
-                onClick={setDate}
-                className="absolute right-0 bottom-0 px-3 py-0.5 bg-blue-600 text-white text-md font-normal rounded-br-md rounded-tl-md"
-              >
-                select
-              </button>
-            </div>
+            </Select>
           </div>
-        </FilterCardRow>
-        {/* <div className="relative flex justify-start items-center py-2">
-          <span className="text-sm font-medium mr-3">Exact date:</span>
-          <button
-            className="relative flex items-center justify-between border border-gray-400 py-0.5 px-3 w-[200px] rounded text-gray-700"
-            onClick={() => setShowCalendar((p) => !p)}
-          >
-            <span className="material-symbols-outlined text-xl mr-1">
-              calendar_month
-            </span>
-            <span className="text-sm font-normal w-full text-left">
-              {date ? date.toLocaleDateString() : "Select date"}
-            </span>
-          </button>
-          {showCalendar && (
-            <div className="absolute top-full right-0 z-[10]">
-              <div className="relative bg-white rounded-md shadow-lg border border-gray-200">
-                <DayPicker
-                  mode="single"
-                  showOutsideDays
-                  required
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  modifiersClassNames={{ today: "today", selected: "selected" }}
-                  fromYear={new Date().getFullYear()}
-                />
-                <button
-                  onClick={setDate}
-                  className="absolute right-0 bottom-0 px-3 py-0.5 bg-blue-600 text-white text-md font-normal rounded-br-md rounded-tl-md"
-                >
-                  select
+
+          <div className="flex items-center gap-10">
+            <span className="text-sm font-medium text-black">Priorities:</span>
+            <Select placement="bottom" offsetY={8}>
+              <SelectTrigger>
+                <button className="w-48 text-left border border-gray-400 rounded text-sm text-gray-700 p-2">
+                  {priorities.size > 0 ? (
+                    <Flags priorityMap={priorities} />
+                  ) : (
+                    "Select Priorities"
+                  )}
                 </button>
-              </div>
-            </div>
-          )}
-        </div> */}
+              </SelectTrigger>
+              <SelectContent
+                renderItem={(onClose) =>
+                  priorityOptions.map(({ key, name, value, color }) => (
+                    <button
+                      key={key}
+                      className="w-full py-2 px-3 hover:bg-slate-100 text-sm text-left flex items-center"
+                      onClick={() => setPriorities(value, onClose)}
+                    >
+                      <Flag
+                        fill={
+                          priorityColors[value]
+                            ? `${priorityColors[value]}`
+                            : "transparent"
+                        }
+                        className={`text-${color} mr-2`}
+                        size={14}
+                      />
+                      {name}
+                      {priorities.has(value) && (
+                        <Check size={14} className="text-blue-500 ml-auto" />
+                      )}
+                    </button>
+                  ))
+                }
+              />
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-black">
+              Created date:
+            </span>
+
+            <Select placement="bottom" offsetY={8}>
+              <SelectTrigger>
+                <button className="w-48 text-left border border-gray-400 rounded text-sm text-gray-700 p-2 flex items-center">
+                  <CalendarDays size={14} className="mr-2" />
+                  {date || "Select date"}
+                </button>
+              </SelectTrigger>
+              <SelectContent
+                renderItem={(onClose) => (
+                  <div className="relative p-2">
+                    <DayPicker
+                      mode="single"
+                      showOutsideDays
+                      required
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      modifiersClassNames={{
+                        today: ".today",
+                        selected: "selected",
+                      }}
+                      fromYear={new Date().getFullYear()}
+                    />
+                    <button
+                      onClick={() => setDate(onClose)}
+                      className="absolute right-0 bottom-0 px-3 py-0.5 bg-blue-600 text-white text-md font-normal rounded-br-md rounded-tl-md"
+                    >
+                      select
+                    </button>
+                  </div>
+                )}
+              />
+            </Select>
+          </div>
+        </div>
+
         <button onClick={handleFilterTasks}>Filter</button>
       </div>
     </div>

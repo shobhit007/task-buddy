@@ -1,27 +1,34 @@
+import { useContext, useState } from "react";
+
+import { Search } from "lucide-react";
+import { UserContext } from "../../context/user.context";
+
+import { searchTaskAsync } from "../../context/tasks/tasks.action";
+
 function SearchBox() {
+  const { user } = useContext(UserContext);
+  const [search, setSearch] = useState("");
+
+  const handleOnChange = (e) => setSearch(e.target.value);
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+
+    searchTaskAsync(user.$id, search);
+  };
+
   return (
-    <div className="w-4/5 max-w-md">
-      <form className="w-full flex bg-gray-200 rounded-md">
+    <div className="w-4/5 max-w-sm pl-2 rounded-3xl bg-gray-200 overflow-hidden">
+      <form className="w-full flex" onSubmit={onSubmit}>
         <input
           type="text"
           placeholder="Search"
           className="w-full pl-4 focus:outline-none border-none bg-transparent"
+          value={search}
+          onChange={handleOnChange}
         />
-        <button className="flex items-center justify-center bg-transparent hover:bg-gray-300 rounded-md  ml-2 px-3 py-2 transition-colors">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="w-6 h-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-            />
-          </svg>
+        <button className="flex items-center justify-center bg-transparent hover:bg-gray-300 ml-2 py-3 px-6 transition-colors">
+          <Search size={16} />
         </button>
       </form>
     </div>
