@@ -249,6 +249,16 @@ export const createList = async (userid, listName) => {
   }
 };
 
+// Delete a list
+export const deleteList = async (listId) => {
+  return await db.deleteDocument(DATABASE_ID, LIST_COLLECTION_ID, listId);
+};
+
+// Update a list
+export const updateList = async (listId, data) => {
+  return await db.updateDocument(DATABASE_ID, LIST_COLLECTION_ID, listId, data);
+};
+
 //Get user's all lists
 export const getUserLists = async (userid) => {
   try {

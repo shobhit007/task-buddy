@@ -15,6 +15,8 @@ import {
   updateTaskStatus,
   updateTaskPriority,
   searchTask,
+  updateList,
+  deleteList,
 } from "../../utils/api/appwrite.api";
 
 const fetchTaskListStart = () => ({ type: TASKS_TYPES.FETCH_TASKS_START });
@@ -155,41 +157,6 @@ export const updateTaskAsync = async (taskId, data) => {
   }
 };
 
-//////////////////////////////////////////////////////////////////////////
-// List
-
-//Create List
-export const createNewList = async (userId, name) => {
-  try {
-    const list = await createList(userId, name);
-    console.log(list);
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const fetchUserListStart = () => ({ type: TASKS_TYPES.FETCH_USER_LISTS_START });
-
-const fetchUserListSuccess = (list) => ({
-  type: TASKS_TYPES.FETCH_USER_LISTS_SUCCESS,
-  payload: list,
-});
-
-const fetchUserListFailed = (errorMessage) => ({
-  type: TASKS_TYPES.FETCH_USER_LISTS_FAILED,
-  payload: errorMessage,
-});
-
-export const fetchUserListAsync = (userid) => async (dispatch) => {
-  dispatch(fetchUserListStart());
-  try {
-    const { documents } = await getUserLists(userid);
-    dispatch(fetchUserListSuccess(documents));
-  } catch (error) {
-    dispatch(fetchUserListFailed(error.message));
-  }
-};
-
 /////////////////////////////////////////////////////////////////////
 // Sort tasks
 
@@ -208,4 +175,58 @@ export const sortTasks = (sortingValues, taskList) => {
   }
 
   console.log(sortedTaskList);
+};
+
+//////////////////////////////////////////////////////////////////////////
+// List
+
+//Create list
+export const createNewList = async (userId, name) => {
+  try {
+    await createList(userId, name);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// Update list
+export const updateListAsync = async (listId, data) => {
+  try {
+    await updateList(listId, data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// Delete list
+export const deleteListAsync = async (listId) => {
+  try {
+    await deleteList(listId);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// Fetch all lists start
+const fetchUserListStart = () => ({ type: TASKS_TYPES.FETCH_USER_LISTS_START });
+
+const fetchUserListSuccess = (list) => ({
+  type: TASKS_TYPES.FETCH_USER_LISTS_SUCCESS,
+  payload: list,
+});
+
+const fetchUserListFailed = (errorMessage) => ({
+  type: TASKS_TYPES.FETCH_USER_LISTS_FAILED,
+  payload: errorMessage,
+});
+
+// Fetch all lists end
+export const fetchUserListAsync = (userid) => async (dispatch) => {
+  dispatch(fetchUserListStart());
+  try {
+    const { documents } = await getUserLists(userid);
+    dispatch(fetchUserListSuccess(documents));
+  } catch (error) {
+    dispatch(fetchUserListFailed(error.message));
+  }
 };
