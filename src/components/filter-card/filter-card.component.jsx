@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from "react";
+import React, { useState } from "react";
 
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -11,23 +11,19 @@ import {
 } from "../select/select.component";
 import { CalendarDays, Check, Flag } from "lucide-react";
 
+import { useAppContext } from "../../context/app/app.context";
+import {
+  setDate,
+  setPriorities,
+  setStatus,
+  clearFilter,
+} from "../../context/app/app.actions";
+
 const priorityColors = {
   3: "#ef4444",
   2: "#facc15",
   1: "#3b82f6",
   0: "#6b7280",
-};
-
-const INITIAL_STATE = {
-  date: "",
-  status: "",
-  priorities: new Set(),
-};
-
-const ACTION_TYPES = {
-  SET_DATE: "SET_DATE",
-  SET_STATUS: "SET_STATUS",
-  SET_PRIORITY: "SET_PRIORITY",
 };
 
 const priorityOptions = [
@@ -63,21 +59,6 @@ const priorityOptions = [
   },
 ];
 
-const reducer = (state, action) => {
-  const { type, payload } = action;
-
-  switch (type) {
-    case ACTION_TYPES.SET_DATE:
-      return { ...state, date: payload };
-    case ACTION_TYPES.SET_STATUS:
-      return { ...state, status: payload };
-    case ACTION_TYPES.SET_PRIORITY:
-      return { ...state, priorities: payload };
-    default:
-      return state;
-  }
-};
-
 const Flags = ({ priorityMap }) => {
   return (
     <span className="flex items-center gap-0.5">
@@ -96,50 +77,48 @@ const Flags = ({ priorityMap }) => {
 };
 
 function FilterCard({ closeFilterCard, onChangeFilter }) {
-  const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const { date, priorities, status } = state;
+  const { dispatch, filters } = useAppContext();
+
+  const status = filters.get("status");
+  const priorities = filters.get("priorities");
+  const date = filters.get("date");
 
   const isSelected = (value) => value === status;
 
-  const setPriorities = (value, callback) => {
-    const updatedPriorities = new Set(priorities);
+  const handleSetPriorities = (value, onSelectClose) =>
+    setPriorities(value, filters, onSelectClose, onChangeFilter)(dispatch);
 
-    if (updatedPriorities.has(value)) {
-      updatedPriorities.delete(value);
-    } else {
-      updatedPriorities.add(value);
-    }
+  const handleSetStatus = (value, onSelectClose) =>
+    setStatus(value, filters, onSelectClose)(dispatch);
 
-    dispatch({ type: ACTION_TYPES.SET_PRIORITY, payload: updatedPriorities });
-    callback();
-  };
-
-  const setStatus = (value, callback) => {
-    dispatch({ type: ACTION_TYPES.SET_STATUS, payload: value });
-    callback();
-  };
-
-  const setDate = (callback) => {
-    dispatch({
-      type: ACTION_TYPES.SET_DATE,
-      payload: selectedDate.toLocaleDateString(),
-    });
-    callback();
-  };
+  const handleSetDate = (onSelectClose) =>
+    setDate(
+      selectedDate.toLocaleDateString(),
+      filters,
+      onSelectClose
+    )(dispatch);
 
   const handleFilterTasks = () => {
-    if (!status && !selectedDate && !priorities.size > 0) {
+    if (filters.size === 0) {
       console.log("select at least one filter");
       return;
     }
+
     onChangeFilter({
       status,
       selectedDate: date,
       priorities,
     });
   };
+
+  const clearStatusFromFilters = () => {
+    clearFilter(filters, "status", onChangeFilter)(dispatch);
+  };
+
+  const clearDateFromFilters = () =>
+    clearFilter(filters, "date", onChangeFilter)(dispatch);
 
   return (
     <div className="absolute top-full right-10 py-4 z-20">
@@ -155,8 +134,10 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
         <h2 className="text-xl text-gray-800 font-medium">Filters</h2>
 
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-6">
-            <span className="text-sm font-medium text-black">Status:</span>
+          <div className="flex gap-6">
+            <span className="text-sm font-medium text-black flex items-center">
+              Status:
+            </span>
             <Select placement="bottom" offsetY={8}>
               <SelectTrigger>
                 <button className="w-48 text-left border border-gray-400 rounded text-sm text-gray-700 p-2 ml-8">
@@ -164,11 +145,11 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                 </button>
               </SelectTrigger>
               <SelectContent
-                renderItem={(onClose) => (
+                renderItem={(onSelectClose) => (
                   <div className="flex flex-col gap-2 p-2">
                     <button
                       className="w-full p-2 hover:bg-slate-100 rounded text-sm text-left flex items-center"
-                      onClick={() => setStatus("complete", onClose)}
+                      onClick={() => handleSetStatus("complete", onSelectClose)}
                     >
                       Complete
                       {isSelected("complete") && (
@@ -177,7 +158,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                     </button>
                     <button
                       className="w-full p-2 hover:bg-slate-100 rounded text-sm text-left flex items-center"
-                      onClick={() => setStatus("pending", onClose)}
+                      onClick={() => handleSetStatus("pending", onSelectClose)}
                     >
                       Pending
                       {isSelected("pending") && (
@@ -188,6 +169,14 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                 )}
               />
             </Select>
+            {status && (
+              <button
+                className="text-sm font-medium text-gray-600 flex items-end"
+                onClick={clearStatusFromFilters}
+              >
+                clear
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-10">
@@ -195,7 +184,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
             <Select placement="bottom" offsetY={8}>
               <SelectTrigger>
                 <button className="w-48 text-left border border-gray-400 rounded text-sm text-gray-700 p-2">
-                  {priorities.size > 0 ? (
+                  {priorities?.size > 0 ? (
                     <Flags priorityMap={priorities} />
                   ) : (
                     "Select Priorities"
@@ -208,7 +197,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                     <button
                       key={key}
                       className="w-full py-2 px-3 hover:bg-slate-100 text-sm text-left flex items-center"
-                      onClick={() => setPriorities(value, onClose)}
+                      onClick={() => handleSetPriorities(value, onClose)}
                     >
                       <Flag
                         fill={
@@ -220,7 +209,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                         size={14}
                       />
                       {name}
-                      {priorities.has(value) && (
+                      {priorities?.has(value) && (
                         <Check size={14} className="text-blue-500 ml-auto" />
                       )}
                     </button>
@@ -252,13 +241,13 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                       selected={selectedDate}
                       onSelect={setSelectedDate}
                       modifiersClassNames={{
-                        today: ".today",
+                        today: "today",
                         selected: "selected",
                       }}
                       fromYear={new Date().getFullYear()}
                     />
                     <button
-                      onClick={() => setDate(onClose)}
+                      onClick={() => handleSetDate(onClose)}
                       className="absolute right-0 bottom-0 px-3 py-0.5 bg-blue-600 text-white text-md font-normal rounded-br-md rounded-tl-md"
                     >
                       select
@@ -267,6 +256,14 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
                 )}
               />
             </Select>
+            {date && (
+              <button
+                className="text-sm font-medium text-gray-600 flex items-end"
+                onClick={clearDateFromFilters}
+              >
+                clear
+              </button>
+            )}
           </div>
         </div>
 

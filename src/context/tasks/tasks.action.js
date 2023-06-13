@@ -17,6 +17,9 @@ import {
   searchTask,
   updateList,
   deleteList,
+  createLineup,
+  lineups,
+  deleteLineUp,
 } from "../../utils/api/appwrite.api";
 
 const fetchTaskListStart = () => ({ type: TASKS_TYPES.FETCH_TASKS_START });
@@ -157,33 +160,14 @@ export const updateTaskAsync = async (taskId, data) => {
   }
 };
 
-/////////////////////////////////////////////////////////////////////
-// Sort tasks
-
-export const sortTasks = (sortingValues, taskList) => {
-  let sortedTaskList = [...taskList];
-  const values = [...sortingValues];
-
-  for (let i = 0; i < values.length; i++) {
-    const key = values[i][0];
-    if (key === "status") {
-      sortedTaskList.sort((a, b) => {
-        console.log(a, b);
-        return b.status - a.status;
-      });
-    }
-  }
-
-  console.log(sortedTaskList);
-};
-
 //////////////////////////////////////////////////////////////////////////
 // List
 
 //Create list
 export const createNewList = async (userId, name) => {
   try {
-    await createList(userId, name);
+    const list = await createList(userId, name);
+    console.log(list);
   } catch (error) {
     console.log(error);
   }
@@ -228,5 +212,33 @@ export const fetchUserListAsync = (userid) => async (dispatch) => {
     dispatch(fetchUserListSuccess(documents));
   } catch (error) {
     dispatch(fetchUserListFailed(error.message));
+  }
+};
+
+// Lineup
+/////////////////////////////////////////////////////
+
+export const createLineupAsync = async (userid, taskid) => {
+  try {
+    await createLineup(userid, taskid);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getLineUpsAsync = async (userid) => {
+  try {
+    const { documents } = await lineups(userid);
+    return documents;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const deleteLineUpAsync = async (lineupId) => {
+  try {
+    await deleteLineUp(lineupId);
+  } catch (error) {
+    console.log(error);
   }
 };

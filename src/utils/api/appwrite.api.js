@@ -8,7 +8,7 @@ import {
   Query,
 } from "appwrite";
 
-const client = new Client();
+export const client = new Client();
 
 client
   .setEndpoint("https://cloud.appwrite.io/v1")
@@ -21,15 +21,36 @@ const db = new Databases(client);
 const DATABASE_ID = "6472f275b59ed08821bc";
 const COLLECTION_ID = "647de6c2d35a22e34b6a";
 const LIST_COLLECTION_ID = "647b2931a770730c8329";
+const LINEUPS_COLLECTION_ID = "64869cfa95fba0236423";
 
 export const listenChanges = (callback) =>
   client.subscribe(
     [
       "databases.6472f275b59ed08821bc.collections.647de6c2d35a22e34b6a.documents",
       "databases.6472f275b59ed08821bc.collections.647b2931a770730c8329.documents",
+      "databases.6472f275b59ed08821bc.collections.64869cfa95fba0236423.documents",
     ],
     callback
   );
+
+export const lineups = async (userid) => {
+  return await db.listDocuments(DATABASE_ID, LINEUPS_COLLECTION_ID, [
+    Query.equal("userid", userid),
+  ]);
+};
+
+export const createLineup = async (userid, taskid) => {
+  return await db.createDocument(
+    DATABASE_ID,
+    LINEUPS_COLLECTION_ID,
+    ID.unique(),
+    { userid, taskid }
+  );
+};
+
+export const deleteLineUp = async (lineupId) => {
+  return await db.deleteDocument(DATABASE_ID, LINEUPS_COLLECTION_ID, lineupId);
+};
 
 // Create an account
 export const createUserAccount = (email, password, name) =>
@@ -184,11 +205,11 @@ export const tasksDescByDate = async (userId) => {
 // Filter tasks
 export const filterTaskList = async (userId, filters, sorting = null) => {
   const queries = Object.keys(filters).reduce((acc, key) => {
-    if (key === "status" && filters[key].length) {
+    if (key === "status" && filters[key]?.length) {
       acc.push(Query.equal("status", filters[key]));
-    } else if (key === "selectedDate" && filters[key].length) {
+    } else if (key === "selectedDate" && filters[key]?.length) {
       acc.push(Query.equal("created_at", filters[key]));
-    } else if (key === "priorities" && filters[key].size > 0) {
+    } else if (key === "priorities" && filters[key]?.size > 0) {
       acc.push(Query.equal("priority", [...filters[key]]));
     }
     return acc;

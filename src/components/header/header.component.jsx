@@ -5,8 +5,16 @@ import { TaskContext } from "../../context/tasks/tasks.context";
 import { UserContext } from "../../context/user.context";
 
 import { filteredList } from "../../context/tasks/tasks.action";
+
 import { Outlet } from "react-router-dom";
-import { Check, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import {
+  Check,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  ListFilter,
+  X,
+} from "lucide-react";
 
 import {
   Select,
@@ -15,6 +23,7 @@ import {
 } from "../select/select.component";
 
 import Searchbox from "../search-box/search-box.component";
+import { useAppContext } from "../../context/app/app.context";
 
 const options = [
   {
@@ -35,8 +44,16 @@ const options = [
 ];
 
 function Header({ list_id }) {
-  const { dispatch } = useContext(TaskContext);
+  const { dispatch, lengthOfPendingTasks, lengthOfCompleteTasks } =
+    useContext(TaskContext);
   const { user } = useContext(UserContext);
+
+  const { filters } = useAppContext();
+
+  const date = filters.get("date");
+  const priorities = filters.get("priorities");
+  const status = filters.get("status");
+
   const [showFilterCard, setShowFilterCard] = useState(false);
   const [sortingOptions, setSortingOptions] = useState(options);
   const [sorting, setSorting] = useState(new Map());
@@ -58,7 +75,11 @@ function Header({ list_id }) {
     } else {
       newSortingMap.delete(optionKey);
       newSortingMap.set(optionKey, optionOrder);
-      filteredList(user, { list_id }, newSortingMap)(dispatch);
+      filteredList(
+        user,
+        { list_id, status, priorities, selectedDate: date },
+        newSortingMap
+      )(dispatch);
       setSorting(newSortingMap);
     }
 
@@ -106,24 +127,50 @@ function Header({ list_id }) {
 
   const handleFilters = (filters) =>
     filteredList(user, { ...filters, list_id })(dispatch);
+
+  const clearSorting = (key) => {
+    const newSortingMap = new Map(sorting);
+
+    newSortingMap.delete(key);
+
+    filteredList(
+      user,
+      { list_id, status, priorities, selectedDate: date },
+      newSortingMap
+    )(dispatch);
+    setSorting(newSortingMap);
+  };
+
   return (
     <div className="w-full">
-      <div className="relative flex justify-between items-center px-10 py-2 bg-white border-y border-t-gray-300 border-solid">
+      <div className="relative flex justify-between items-center px-10 h-20 bg-white border-y border-gray-300 border-solid">
         <Searchbox />
         <div className="flex gap-3">
           <button
-            className="relative flex items-center text-xs font-light py-0.5 px-3 rounded-sm hover:bg-slate-300"
+            className={`relative flex items-center text-xs font-light py-0.5 px-3 rounded-sm hover:bg-slate-300 ${
+              filters.size > 0 && "text-blue-500"
+            }`}
             onClick={() => setShowFilterCard((p) => !p)}
           >
-            <span className="material-symbols-outlined text-sm mr-0.5">
-              filter_list
-            </span>
-            Filter
+            <ListFilter
+              size={14}
+              className={`mr-0.5 ${
+                filters.size > 0 ? "text-blue-500" : "text-gray-600"
+              }`}
+            />
+            {filters.size || "Filter"}
           </button>
           <Select placement="bottom-end" offsetY={24}>
             <SelectTrigger>
-              <button className="relative flex items-center text-xs font-light py-0.5 px-3 rounded-sm hover:bg-slate-300">
-                <ChevronsUpDown size={14} className="mr-0.5" />
+              <button
+                className={`relative flex items-center text-xs font-light py-0.5 px-3 rounded-sm hover:bg-slate-300 ${
+                  sorting.size > 0 && "text-blue-500"
+                }`}
+              >
+                <ChevronsUpDown
+                  size={14}
+                  className={`mr-0.5 ${sorting.size > 0 && "text-blue-500"}`}
+                />
                 Sort
               </button>
             </SelectTrigger>
@@ -174,19 +221,61 @@ function Header({ list_id }) {
           )}
         </div>
       </div>
+      {sorting.size > 0 && (
+        <div className="py-4 px-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">
+              Sorting by
+            </span>
+            {sorting.has("status") && (
+              <div className="flex items-center">
+                <button
+                  className="p-0.5 border-2 bg-blue-600 rounded-[50%] hover:scale-110"
+                  onClick={() => clearSorting("status")}
+                >
+                  <X size={11} className="text-white" />
+                </button>
+                <span className="text-xs text-blue-600">Status</span>
+              </div>
+            )}
+            {sorting.has("priority") && (
+              <div className="flex items-center">
+                <button
+                  className="p-0.5 border-2 bg-blue-600 rounded-[50%] hover:scale-110"
+                  onClick={() => clearSorting("priority")}
+                >
+                  <X size={11} className="text-white" />
+                </button>
+                <span className="text-xs text-blue-600">Priority</span>
+              </div>
+            )}
+            {sorting.has("created_at") && (
+              <div className="flex items-center">
+                <button
+                  className="p-0.5 border-2 bg-blue-600 rounded-[50%] hover:scale-110"
+                  onClick={() => clearSorting("created_at")}
+                >
+                  <X size={11} className="text-white" />
+                </button>
+                <span className="text-xs text-blue-600">Created date</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <div className="pt-4 px-6 bg-transparent">
         <div className="bg-transparent flex gap-4 pb-4">
           <div className="bg-white py-3 px-2 rounded text-xs uppercase font-bold text-gray-500 tracking-wide md:w-60 shadow-md border-t-2 border-t-gray-400">
             Pending
             <span className="inline-block p-3 py-[1px] border-[1px] border-solid border-slate-300 font-semibold ml-2 rounded-xl">
-              100
+              {lengthOfPendingTasks}
             </span>
           </div>
 
           <div className="bg-white py-3 px-2 rounded text-xs uppercase font-bold text-gray-500 tracking-wide md:w-60 shadow-md border-t-2 border-t-green-400">
             Complete
             <span className="inline-block p-3 py-[1px] border-[1px] border-solid border-slate-300 font-semibold ml-2 rounded-xl">
-              10
+              {lengthOfCompleteTasks}
             </span>
           </div>
         </div>

@@ -18,8 +18,10 @@ function Tasks() {
   }, [user, dispatch]);
 
   useEffect(() => {
+    if (!user) return;
+
     const unsubscribe = listenChanges((e) => {
-      fetchTaskList({ $id: e.payload.userid })(dispatch);
+      fetchTaskList({ $id: user.$id })(dispatch);
     });
 
     return () => unsubscribe();

@@ -29,12 +29,14 @@ function Sidebar({ onOpenModal }) {
   }, [dispatch, user]);
 
   useEffect(() => {
+    if (!user) return;
+
     const unsubscribe = listenChanges((e) => {
-      fetchUserListAsync(e.payload.userid)(dispatch);
+      fetchUserListAsync(user.$id)(dispatch);
     });
 
     return () => unsubscribe();
-  }, [dispatch]);
+  }, [dispatch, user]);
 
   const handleModal = () => setShowModal(true);
 

@@ -22,12 +22,14 @@ function Categories() {
   }, [user, dispatch, list_id]);
 
   useEffect(() => {
+    if (!user) return;
     const unsubscribe = listenChanges((e) => {
-      fetchTaskListByName({ $id: e.payload.userid }, list_id)(dispatch);
+      console.log(e);
+      fetchTaskListByName({ $id: user.$id }, list_id)(dispatch);
     });
 
     return () => unsubscribe();
-  }, [dispatch, list_id]);
+  }, [dispatch, list_id, user]);
 
   return (
     <div className="h-full w-full overflow-hidden">
