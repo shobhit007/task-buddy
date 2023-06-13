@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import FilterCard from "../filter-card/filter-card.component";
 
 import { TaskContext } from "../../context/tasks/tasks.context";
@@ -44,8 +44,20 @@ const options = [
 ];
 
 function Header({ list_id }) {
-  const { dispatch, lengthOfPendingTasks, lengthOfCompleteTasks } =
-    useContext(TaskContext);
+  const [showFilterCard, setShowFilterCard] = useState(false);
+  const [sortingOptions, setSortingOptions] = useState(options);
+  const [sorting, setSorting] = useState(new Map());
+
+  const [search, setSearch] = useState("");
+
+  const {
+    dispatch,
+    lengthOfPendingTasks,
+    lengthOfCompleteTasks,
+    setFilteredList,
+    taskList,
+  } = useContext(TaskContext);
+
   const { user } = useContext(UserContext);
 
   const { filters } = useAppContext();
@@ -54,9 +66,13 @@ function Header({ list_id }) {
   const priorities = filters.get("priorities");
   const status = filters.get("status");
 
-  const [showFilterCard, setShowFilterCard] = useState(false);
-  const [sortingOptions, setSortingOptions] = useState(options);
-  const [sorting, setSorting] = useState(new Map());
+  useEffect(() => {
+    const filteredList = taskList.filter((task) => {
+      return task.title.toLowerCase().includes(search.toLocaleLowerCase());
+    });
+
+    setFilteredList(filteredList);
+  }, [search, taskList, setFilteredList]);
 
   const handleSortingOptions = (optionKey, optionOrder) => {
     const newSortingOptions = sortingOptions.map((item) => {
@@ -141,11 +157,13 @@ function Header({ list_id }) {
     setSorting(newSortingMap);
   };
 
+  const handleOnChange = (e) => setSearch(e.target.value);
+
   return (
     <div className="w-full">
-      <div className="relative flex justify-between items-center px-10 h-20 bg-white border-y border-gray-300 border-solid">
-        <Searchbox />
-        <div className="flex gap-3">
+      <div className="relative flex flex-wrap lg:flex-nowrap justify-between items-center px-2 md:px-4 lg:px-10 h-24 lg:h-20 bg-white border-y border-gray-300 border-solid">
+        <Searchbox search={search} onChange={handleOnChange} />
+        <div className="w-full lg:w-max flex gap-3">
           <button
             className={`relative flex items-center text-xs font-light py-0.5 px-3 rounded-sm hover:bg-slate-300 ${
               filters.size > 0 && "text-blue-500"
@@ -263,16 +281,16 @@ function Header({ list_id }) {
           </div>
         </div>
       )}
-      <div className="pt-4 px-6 bg-transparent">
-        <div className="bg-transparent flex gap-4 pb-4">
-          <div className="bg-white py-3 px-2 rounded text-xs uppercase font-bold text-gray-500 tracking-wide md:w-60 shadow-md border-t-2 border-t-gray-400">
+      <div className="pt-4 px-3 lg:px-6 bg-transparent">
+        <div className="flex gap-2 md:gap-4 pb-2 lg:pb-4">
+          <div className="w-full md:w-64 bg-white py-3 px-2 rounded text-xs uppercase font-bold text-gray-500 tracking-wide shadow-md border-t-2 border-t-gray-400">
             Pending
             <span className="inline-block p-3 py-[1px] border-[1px] border-solid border-slate-300 font-semibold ml-2 rounded-xl">
               {lengthOfPendingTasks}
             </span>
           </div>
 
-          <div className="bg-white py-3 px-2 rounded text-xs uppercase font-bold text-gray-500 tracking-wide md:w-60 shadow-md border-t-2 border-t-green-400">
+          <div className="w-full md:w-64 bg-white py-3 px-2 rounded text-xs uppercase font-bold text-gray-500 tracking-wide shadow-md border-t-2 border-t-green-400">
             Complete
             <span className="inline-block p-3 py-[1px] border-[1px] border-solid border-slate-300 font-semibold ml-2 rounded-xl">
               {lengthOfCompleteTasks}

@@ -1,6 +1,4 @@
-import React, { useState, Fragment } from "react";
-
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
 
 import { MoreHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -10,6 +8,8 @@ import {
   SelectTrigger,
 } from "../select/select.component";
 import Tooltip from "../tooltip/tooltip.component";
+
+import CustomLink from "../custom-link/custom-link.componenet";
 
 import {
   deleteListAsync,
@@ -51,8 +51,8 @@ function ListItem({ listId, listName, onToggleModal }) {
   };
 
   return (
-    <li className="flex-1 lg:flex-initial text-center lg:text-left">
-      <div className="group p-2 text-sm font-medium text-gray-600 flex items-center rounded hover:bg-slate-200">
+    <li className="flex-1 lg:flex-initial text-left lg:rounded hover:bg-slate-200">
+      <div className="group text-sm pr-2 font-medium text-gray-600 flex items-center rounded hover:bg-slate-200">
         {isRename ? (
           <form className="flex w-full" onSubmit={hanldeOnSubmit}>
             <input
@@ -65,18 +65,17 @@ function ListItem({ listId, listName, onToggleModal }) {
             />
           </form>
         ) : (
-          <Fragment>
-            <Link
-              to={`/${makeLink(listName)}`}
-              className="block w-full"
+          <div className="w-full flex items-center justify-between">
+            <CustomLink
+              to={`/tasks/${makeLink(listName)}`}
               state={{ list_id: listId }}
             >
               {listName}
-            </Link>
+            </CustomLink>
             <Select>
               <SelectTrigger>
                 <Tooltip content="List Settings">
-                  <button className="opacity-0 group-hover:opacity-100">
+                  <button className="lg:opacity-0 group-hover:opacity-100">
                     <MoreHorizontal
                       size={16}
                       className="text-slate-600 ml-auto"
@@ -124,7 +123,7 @@ function ListItem({ listId, listName, onToggleModal }) {
                 )}
               />
             </Select>
-          </Fragment>
+          </div>
         )}
       </div>
     </li>

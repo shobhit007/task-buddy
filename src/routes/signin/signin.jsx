@@ -13,7 +13,7 @@ const FORM_FIELDS = {
 
 function SingIn() {
   const [formFields, setFormFields] = useState(FORM_FIELDS);
-  const { signInUser } = useContext(UserContext);
+  const { signInUser, errorMessage } = useContext(UserContext);
 
   const { email, password } = formFields;
 
@@ -25,15 +25,10 @@ function SingIn() {
     setFormFields((preValues) => ({ ...preValues, [name]: value }));
   };
 
-  const handleSignIn = async (e) => {
+  const handleSignIn = (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      console.log("Fields are required.");
-      return;
-    }
-
-    await signInUser(email, password);
+    signInUser(email, password);
   };
 
   return (
@@ -53,6 +48,13 @@ function SingIn() {
           value={password}
           onChange={handleOnChange}
         />
+        {errorMessage && (
+          <div className="pt-0.5 pb-2 w-full">
+            <span className="text-xs font-medium text-red-600">
+              {errorMessage}
+            </span>
+          </div>
+        )}
         <Button style={{ marginTop: "1.25rem" }}>Sign In</Button>
         <p className="text-sm font-semibold text-black mt-3">
           Don't have an account?

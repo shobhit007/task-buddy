@@ -6,6 +6,8 @@ import {
   useMergeRefs,
   offset,
   autoUpdate,
+  shift,
+  flip,
 } from "@floating-ui/react";
 
 const Tooltip = forwardRef(function (
@@ -18,7 +20,7 @@ const Tooltip = forwardRef(function (
     open,
     onOpenChange: setOpen,
     placement: "top",
-    middleware: [offset(offsetY || 10)],
+    middleware: [offset(offsetY || 10), shift(), flip()],
     whileElementsMounted: autoUpdate,
   });
 

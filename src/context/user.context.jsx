@@ -68,14 +68,17 @@ export const UserProvider = ({ children }) => {
   const setErrorMessage = (error) =>
     dispatch({ type: "set_error", payload: error });
 
+  // Clear error message
+  const clearErrorMessage = () => setErrorMessage("");
+
   // Sign in user (basically create new user session)
   const signInUser = async (email, password) => {
     try {
       const user = await createUserSession(email, password);
       setUser(user);
       navigate("/", { replace: true });
+      errorMessage && clearErrorMessage();
     } catch (error) {
-      console.log(error);
       setErrorMessage(error.message);
     }
   };
@@ -86,6 +89,7 @@ export const UserProvider = ({ children }) => {
       const user = await createUserAccount(email, password, name);
       await createUserSession(email, password);
       if (user) navigate("/", { replace: true });
+      errorMessage && clearErrorMessage();
     } catch (error) {
       if (error.type === "user_already_exists") {
         setErrorMessage("Email has already been taken.");

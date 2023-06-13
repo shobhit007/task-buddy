@@ -20,9 +20,9 @@ function Dashboard() {
       {showModal && <TaskModal onCloseModal={() => setShowModal(false)} />}
       <Routes>
         <Route index element={<Home />} />
-        <Route>
-          <Route index path="/tasks" element={<Tasks />} />
-          <Route path="/:list_name" element={<Categories />} />
+        <Route path="/tasks">
+          <Route index element={<Tasks />} />
+          <Route path=":list_name" element={<Categories />} />
         </Route>
       </Routes>
       <FloatingButton onClick={() => setShowModal(true)} />

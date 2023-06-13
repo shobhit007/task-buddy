@@ -1,8 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 import { UserContext } from "../../context/user.context";
-
 import { TaskContext } from "../../context/tasks/tasks.context";
 import {
   fetchUserListAsync,
@@ -13,13 +11,21 @@ import { listenChanges } from "../../utils/api/appwrite.api";
 
 import ListItem from "../list-item/list-item.compnent";
 
-import { Home, List, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Home, List, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+} from "../select/select.component";
 
-function Sidebar({ onOpenModal }) {
+import CustomLink from "../custom-link/custom-link.componenet";
+
+function Sidebar() {
   const { dispatch, userLists } = useContext(TaskContext);
-  const { user } = useContext(UserContext);
+  const { user, logOutUser } = useContext(UserContext);
 
   const [showModal, setShowModal] = useState(false);
+  const [showAccr, setShowAccr] = useState(false);
   const [listName, setListName] = useState("");
 
   useEffect(() => {
@@ -52,79 +58,98 @@ function Sidebar({ onOpenModal }) {
       <header className="py-4  border-b-2 border-gray-100 lg:border-none lg:h-20">
         <nav className="flex justify-between items-stretch px-4 lg:px-8 lg:block">
           <h2 className="text-lg font-semibold">TaskBuddy</h2>
-          <button className="lg:hidden lg:invisible p-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </button>
+          <Select>
+            <SelectTrigger>
+              <button className="w-8 h-8 rounded-[50%] flex items-center justify-center uppercase font-medium text-sm text-white bg-blue-400 lg:opacity-0 lg:invisible">
+                {user?.name?.slice(0, 1)}
+              </button>
+            </SelectTrigger>
+            <SelectContent
+              renderItem={() => (
+                <button
+                  className="w-full p-2 rounded bg-blue-400 hover:bg-blue-500 text-sm text-white"
+                  onClick={logOutUser}
+                >
+                  Log out
+                </button>
+              )}
+            />
+          </Select>
         </nav>
       </header>
-      <ul className="w-full list-none flex lg:flex-col sm:gap-2 lg:px-8 lg:pb-20 lg:pt-4 lg:sidebar lg:overflow-y-scroll no-scrollbar">
-        <li className="flex-1 lg:flex-initial text-center lg:text-left">
-          <div className="p-2 text-sm font-medium text-gray-600 flex items-center rounded hover:bg-slate-200">
-            <Home size={18} className="text-gray-600 mr-2" />
-            <Link to="/" className="block w-full">
-              Home
-            </Link>
-          </div>
-        </li>
-        <li className="flex-1 lg:flex-initial text-center lg:text-left">
-          <div className="p-2 text-sm font-medium text-gray-600 flex items-center rounded hover:bg-slate-200">
-            <List size={18} className="text-gray-600 mr-2" />
-            <Link to="/tasks" className="block w-full">
-              Tasks
-            </Link>
-          </div>
-        </li>
-        {userLists.map(({ list_name, $id }) => (
-          <ListItem
-            key={$id}
-            listName={list_name}
-            listId={$id}
-            onToggleModal={handleModal}
+      <ul className="w-full list-none flex flex-wrap lg:flex-col sm:gap-2 lg:px-8 lg:pb-20 lg:pt-4 lg:sidebar lg:overflow-y-scroll no-scrollbar">
+        <li className="flex items-center justify-center lg:justify-start lg:rounded hover:bg-slate-200 px-2">
+          <Home
+            size={18}
+            className="text-gray-600 mr-2 opacity-0 invisible md:opacity-100 md:visible"
           />
-        ))}
-      </ul>
-      <footer className="hidden invisible lg:block lg:visible pt-1 px-4 absolute bottom-0 w-full h-20">
-        <button
-          onClick={onOpenModal}
-          className="hidden invisible lg:inline-flex lg:visible w-full text-white text-base bg-blue-500 gap-2 py-4 justify-center rounded-md transition-colors hover:bg-blue-600"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="w-6 h-6"
+          <CustomLink to="/">Home</CustomLink>
+        </li>
+        <li className="flex items-center justify-center lg:justify-start lg:rounded hover:bg-slate-200 px-2">
+          <List
+            size={18}
+            className="text-gray-600 mr-2 opacity-0 invisible md:opacity-100 md:visible"
+          />
+          <CustomLink to="/tasks">Tasks</CustomLink>
+        </li>
+
+        <div className="w-full py-3 px-2 md:px-0 border-t border-gray-200 md:border-0">
+          <button
+            className="w-full p-2 rounded border border-gray-200 flex items-center"
+            onClick={() => setShowAccr((p) => !p)}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          Create task
-        </button>
+            <span className="text-sm font-medium text-gray-600">List</span>
+            {!showAccr ? (
+              <ChevronDown size={14} className="ml-auto text-gray-600" />
+            ) : (
+              <ChevronUp size={14} className="ml-auto text-gray-600" />
+            )}
+          </button>
+          <div
+            className={`pt-2 grid accr ${
+              showAccr && "open"
+            } transition-["grid-template-rows"] duration-300`}
+          >
+            <div className="overflow-hidden w-full flex flex-col gap-2">
+              {userLists.map(({ list_name, $id }) => (
+                <ListItem
+                  key={$id}
+                  listName={list_name}
+                  listId={$id}
+                  onToggleModal={handleModal}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </ul>
+
+      <footer className="hidden invisible lg:block lg:visible pt-1 px-4 absolute bottom-0 w-full h-20">
+        <Select>
+          <SelectTrigger>
+            <button className="w-12 h-12 rounded-[50%] flex items-center justify-center uppercase font-medium text-sm text-white bg-blue-400">
+              {user?.name?.slice(0, 1)}
+            </button>
+          </SelectTrigger>
+          <SelectContent
+            renderItem={() => (
+              <button
+                className="w-full p-2 rounded bg-blue-400 hover:bg-blue-500 text-sm text-white"
+                onClick={logOutUser}
+              >
+                Log out
+              </button>
+            )}
+          />
+        </Select>
       </footer>
 
       {showModal && (
         <div className="fixed left-0 top-0 w-full h-full z-[1000] bg-[rgba(0,0,0,0.5)]">
-          <div className="relative py-4 md:py-16 lg:py-24">
+          <div className="relative px-2 py-4 md:py-16 lg:py-24">
             <div className=" max-w-lg mx-auto bg-slate-200 rounded overflow-hidden">
-              <div className="py-6 px-8 bg-white flex justify-between items-center">
-                <h2 className="text-2xl text-gray-700">Create List</h2>
+              <div className="p-4 md:py-6 md:px-8 bg-white flex justify-between items-center">
+                <h2 className="sm:text-2xl text-gray-700">Create List</h2>
                 <button
                   className="group px-3 py-2 rounded bg-slate-200"
                   onClick={() => setShowModal(false)}
@@ -135,7 +160,7 @@ function Sidebar({ onOpenModal }) {
                   />
                 </button>
               </div>
-              <div className="py-4 px-8">
+              <div className="py-4 px-2 md:px-8">
                 <p className="text-sm text-gray-700 font-medium mb-2">
                   List name
                 </p>

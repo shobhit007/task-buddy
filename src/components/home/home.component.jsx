@@ -24,6 +24,9 @@ import Modal from "../modal/modal.component";
 function Home() {
   const { taskList, dispatch } = useContext(TaskContext);
   const { user } = useContext(UserContext);
+
+  const [filteredList, setFilteredList] = useState(taskList);
+  const [search, setSearch] = useState("");
   const [lineups, setLineups] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [task, setTask] = useState({});
@@ -81,11 +84,22 @@ function Home() {
     return () => unsubscribe();
   }, [getLineUps, user]);
 
-  const handleCreateLineup = (task) => {
+  // Search
+  useEffect(() => {
+    const newFiteredList = taskList.filter((task) => {
+      return task.title.toLowerCase().includes(search.toLocaleLowerCase());
+    });
+
+    setFilteredList(newFiteredList);
+  }, [search, taskList]);
+
+  const handleCreateLineup = (task, onSelectClose) => {
     const isExist = lineups.find((lineup) => lineup.$id === task.$id);
     if (!isExist) {
       createLineupAsync(task.userid, task.$id);
     }
+
+    onSelectClose();
     return;
   };
 
@@ -107,10 +121,12 @@ function Home() {
   };
 
   return (
-    <div className="h-full w-full overflow-hidden border border-red-500">
-      <div className="p-8">
-        <h2 className="text-3xl text-gray-600 mb-4">LineUp Your Tasks</h2>
-        <div className="max-w-lg bg-slate-200 p-4 rounded">
+    <div className="h-full w-full overflow-hidden">
+      <div className="p-4 md:p-6 lg:p-8">
+        <h2 className="text-2xl md:text-3xl text-gray-600 mb-4">
+          LineUp Your Tasks
+        </h2>
+        <div className="max-w-lg bg-slate-200 p-2 md:p-4 rounded">
           <Select placement="bottom-start" offsetY={20}>
             <SelectTrigger>
               <button className="group/button w-full py-3 flex items-center justify-center rounded border border-gray-400 border-dashed hover:border-blue-500">
@@ -125,19 +141,21 @@ function Home() {
             </SelectTrigger>
 
             <SelectContent
-              renderItem={() => (
-                <div className="relative p-4 w-56 md:w-80 max-w-md overflow-hidden overflow-y-scroll max-h-72">
+              renderItem={(onSelectClose) => (
+                <div className="relative md:p-4 w-56 md:w-80 max-w-md overflow-hidden overflow-y-scroll max-h-72">
                   <input
                     type="text"
                     placeholder="Search by title"
                     autoFocus
                     className="w-full text-sm text-gray-500 p-2 focus:outline-none"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                   />
                   <div className="py-2">
-                    {taskList.map((task) => (
+                    {filteredList.map((task) => (
                       <button
                         key={task.$id}
-                        onClick={() => handleCreateLineup(task)}
+                        onClick={() => handleCreateLineup(task, onSelectClose)}
                         className="w-full text-left p-2 text-sm text-gray-500 hover:bg-slate-100"
                       >
                         {task.title}
@@ -151,7 +169,7 @@ function Home() {
         </div>
         {lineups.length > 0 && (
           <div className="w-full py-4 md:py-8">
-            <div className="group relative bg-slate-200 px-2 py-3 rounded flex-nowrap">
+            <div className="group relative bg-slate-200 px-2 py-2 md:py-3 rounded flex-nowrap">
               <div
                 className="items-stretch flex gap-3 overflow-x-scroll no-scrollbar"
                 ref={ref}

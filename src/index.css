@@ -31,5 +31,13 @@
       display: block;
       scrollbar-width: 4px;
     }
+
+    .accr {
+      grid-template-rows: 0fr;
+    }
+
+    .accr.open {
+      grid-template-rows: 1fr;
+    }
   }
 }

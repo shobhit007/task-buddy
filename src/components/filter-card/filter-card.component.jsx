@@ -121,8 +121,8 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
     clearFilter(filters, "date", onChangeFilter)(dispatch);
 
   return (
-    <div className="absolute top-full right-10 py-4 z-20">
-      <div className="relative bg-white px-6 pb-8 w-full md:w-[512px] min-h-[140px] rounded-md shadow-lg">
+    <div className="absolute py-2 top-full left-2 md:right-10 md:py-4 z-20">
+      <div className="relative bg-white px-6 pb-8 w-full ml-auto md:w-[512px] min-h-[140px] rounded-md shadow-lg">
         <div className="flex justify-end pt-2">
           <button
             className="w-8 h-8 hover:bg-slate-200"
@@ -134,7 +134,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
         <h2 className="text-xl text-gray-800 font-medium">Filters</h2>
 
         <div className="flex flex-col gap-4">
-          <div className="flex gap-6">
+          <div className="flex gap-2 lg:gap-6">
             <span className="text-sm font-medium text-black flex items-center">
               Status:
             </span>
@@ -179,7 +179,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
             )}
           </div>
 
-          <div className="flex items-center gap-10">
+          <div className="flex items-center gap-5 lg:gap-10">
             <span className="text-sm font-medium text-black">Priorities:</span>
             <Select placement="bottom" offsetY={8}>
               <SelectTrigger>
@@ -219,7 +219,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
             </Select>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 lg:gap-4">
             <span className="text-sm font-medium text-black">
               Created date:
             </span>

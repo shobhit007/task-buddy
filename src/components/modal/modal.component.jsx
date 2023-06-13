@@ -102,10 +102,10 @@ function Modal({ task, onCloseModal, onHandlePriority, priority }) {
     updateTaskStatusAsync($id, status === "complete" ? "pending" : "complete");
 
   return (
-    <div className="fixed inset-0 w-full h-full z-10">
-      <div className="py-20 relative h-screen bg-[rgba(0,0,0,0.2)] backdrop-blur-sm">
+    <div className="fixed inset-0 w-full h-full z-100">
+      <div className="py-8 md:py-14 xl:py-20 px-2 lg:px-0 relative h-screen bg-[rgba(0,0,0,0.2)] backdrop-blur-sm">
         <div className="max-w-screen-md my-0 mx-auto bg-white rounded-lg overflow-hidden shadow-0 relative">
-          <div className="flex items-center justify-between p-4 bg-slate-200">
+          <div className="flex items-center justify-between py-2 px-3 lg:p-4 bg-slate-200">
             <p className="text-base font-medium text-black">{list_name}</p>
             <button
               className="group px-3 py-[3px] rounded bg-white"
@@ -116,7 +116,7 @@ function Modal({ task, onCloseModal, onHandlePriority, priority }) {
               </span>
             </button>
           </div>
-          <div className="flex justify-between items-center py-4 px-8 border-b border-gray-100">
+          <div className="flex justify-between items-center py-2 md:py-4 px-2 md:px-8 border-b border-gray-100">
             <div className="flex gap-2">
               <div
                 className={`flex gap-2 p-2 rounded ${
@@ -199,7 +199,7 @@ function Modal({ task, onCloseModal, onHandlePriority, priority }) {
               </button>
             </Tooltip>
           </div>
-          <div className="px-10">
+          <div className="px-2 sm:px-10">
             <div className="border-b border-b-gray-200 py-3 flex items-center justify-between">
               <span className="text-[11px] text-gray-400 inline-block uppercase">
                 Created: <span className="text-sm ml-0.5">{date}</span>

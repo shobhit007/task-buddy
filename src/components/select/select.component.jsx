@@ -6,6 +6,8 @@ import {
   useMergeRefs,
   offset,
   autoUpdate,
+  shift,
+  flip,
 } from "@floating-ui/react";
 import Portal from "../portal/portal.component";
 import { Overlay, OverlayHandler } from "../overlay/overlay.component";
@@ -20,7 +22,7 @@ export const Select = ({ children, placement = "bottom", offsetY = 14 }) => {
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
-    middleware: [offset(offsetY)],
+    middleware: [offset({ mainAxis: offsetY }), shift(), flip()],
     whileElementsMounted: autoUpdate,
     placement,
   });
@@ -62,9 +64,11 @@ export const SelectContent = ({ renderItem = () => {} }) => {
           ref={ref}
           {...getFloatingProps()}
           style={floatingStyles}
-          className="absolute z-[1000] min-w-[192px] rounded overflow-hidden bg-white shadow-md border border-gray-100"
+          className="z-[1000] px-4 md:px-0 bg-transparent"
         >
-          {renderItem(onClose)}
+          <div className="min-w-[192px] rounded overflow-hidden bg-white shadow-md border border-gray-100">
+            {renderItem(onClose)}
+          </div>
         </div>
       </Overlay>
     </Portal>

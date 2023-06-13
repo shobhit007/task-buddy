@@ -10,7 +10,8 @@ import Header from "../header/header.component";
 import { listenChanges } from "../../utils/api/appwrite.api";
 
 function Tasks() {
-  const { taskList, dispatch } = useContext(TaskContext);
+  const { taskList, dispatch, filteredList, setFilteredList } =
+    useContext(TaskContext);
   const { user } = useContext(UserContext);
 
   useEffect(() => {
@@ -27,12 +28,16 @@ function Tasks() {
     return () => unsubscribe();
   }, [user, dispatch]);
 
+  useEffect(() => {
+    setFilteredList(taskList);
+  }, [taskList, setFilteredList]);
+
   return (
-    <div className="h-full w-full overflow-hidden">
+    <div className="h-full w-full overflow-hidden overflow-y-scroll">
       <Header />
-      <div className="pt-4 pb-4 px-4 lg:pb-28 bg-transparent h-full overflow-y-scroll">
+      <div className="pt-4 px-4 pb-16 lg:pb-28 bg-transparent">
         <div className="h-full">
-          <TaskList items={taskList} />
+          <TaskList items={filteredList} />
         </div>
       </div>
     </div>

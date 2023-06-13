@@ -1,4 +1,4 @@
-import React, { createContext, useMemo, useReducer } from "react";
+import React, { createContext, useMemo, useReducer, useState } from "react";
 
 import { taskReducer } from "./tasks.reducer";
 
@@ -15,7 +15,10 @@ export const TaskContext = createContext({
 
 export function TaskProvider({ children }) {
   const [state, dispatch] = useReducer(taskReducer, INITIAL_STATE);
+
   const { taskList, loading, errorMessage, filters, userLists } = state;
+
+  const [filteredList, setFilteredList] = useState([]);
 
   const lengthOfPendingTasks = useMemo(() => {
     const filteredPendingTasks = taskList.filter(
@@ -31,10 +34,6 @@ export function TaskProvider({ children }) {
     return filteredPendingTasks.length;
   }, [taskList]);
 
-  const lengthOfTotalTasks = useMemo(() => {
-    return taskList.length;
-  }, [taskList]);
-
   const value = {
     taskList,
     loading,
@@ -44,7 +43,8 @@ export function TaskProvider({ children }) {
     userLists,
     lengthOfPendingTasks,
     lengthOfCompleteTasks,
-    lengthOfTotalTasks,
+    setFilteredList,
+    filteredList,
   };
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

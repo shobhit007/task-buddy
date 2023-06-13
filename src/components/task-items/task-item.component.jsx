@@ -96,8 +96,8 @@ function Task({ task }) {
           </span>
           <h1 className="text-base text-black font-normal mt-0.5">{title}</h1>
         </div>
-        <div className="flex justify-between border-t border-gray-100 opacity-0 invisible h-0 group-hover:opacity-100 group-hover:visible group-hover:h-max group-aria-[expanded=true]:opacity-100 group-aria-[expanded=true]:visible group-aria-[expanded=true]:h-max">
-          <div className="flex gap-x-2 items-center">
+        <div className="flex justify-between md:border-t border-gray-100 md:opacity-0 md:invisible md:h-0 group-hover:opacity-100 group-hover:visible group-hover:h-max group-aria-[expanded=true]:opacity-100 group-aria-[expanded=true]:visible group-aria-[expanded=true]:h-max">
+          <div className="flex gap-x-3 md:gap-x-2 items-center">
             {status !== "complete" && (
               <Tooltip content="Complete task">
                 <button className="group/button" onClick={handleCompleteTask}>

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import Button from "../button/button";
 
@@ -22,10 +22,22 @@ function TaskModal({ onCloseModal }) {
   const { user } = useContext(UserContext);
   const { userLists } = useContext(TaskContext);
 
+  const [filteredList, setFilteredList] = useState(userLists);
   const [fields, setFields] = useState(FIELDS);
   const [showListIput, setShowListInput] = useState(false);
   const [listName, setListName] = useState("");
   const [selectedList, setSelectedList] = useState({ name: "", id: "" });
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const newFilteredList = userLists.filter((list) => {
+      return list.list_name.toLowerCase().includes(search.toLocaleLowerCase());
+    });
+
+    setFilteredList(newFilteredList);
+  }, [search, userLists]);
+
+  const handleOnSearch = (e) => setSearch(e.target.value);
 
   const { title, description } = fields;
 
@@ -104,9 +116,11 @@ function TaskModal({ onCloseModal }) {
                           placeholder="search"
                           autoFocus
                           className="p-2 w-full focus:outline-none"
+                          value={search}
+                          onChange={handleOnSearch}
                         />
                       </div>
-                      {userLists.map(({ list_name, $id }) => (
+                      {filteredList.map(({ list_name, $id }) => (
                         <button
                           key={$id}
                           className="text-sm w-full block text-left p-2 hover:bg-slate-200 rounded"
