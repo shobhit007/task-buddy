@@ -140,14 +140,6 @@ export const updateTask = async (taskId, data) => {
   }
 };
 
-// Search tasks
-export const searchTask = async (userid, searchInput) => {
-  return await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-    Query.equal("userid", userid),
-    Query.search("title", searchInput),
-  ]);
-};
-
 // Get all tasks
 export const getListOfTasks = async (userId) => {
   try {
@@ -171,32 +163,6 @@ export const getListOfTasksByName = async (userId, listId) => {
       Query.orderDesc("$createdAt"),
     ]);
     return lists;
-  } catch (error) {
-    return error;
-  }
-};
-
-// find tasks in asc order by createdAt
-export const tasksAscByDate = async (userId) => {
-  try {
-    const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("userid", userId),
-      Query.orderAsc("$createdAt"),
-    ]);
-    return list;
-  } catch (error) {
-    return error;
-  }
-};
-
-// find tasks in desc order by createdAt
-export const tasksDescByDate = async (userId) => {
-  try {
-    const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("userid", userId),
-      Query.orderDesc("$createdAt"),
-    ]);
-    return list;
   } catch (error) {
     return error;
   }

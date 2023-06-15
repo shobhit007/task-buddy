@@ -91,27 +91,15 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
     setPriorities(value, filters, onSelectClose, onChangeFilter)(dispatch);
 
   const handleSetStatus = (value, onSelectClose) =>
-    setStatus(value, filters, onSelectClose)(dispatch);
+    setStatus(value, filters, onSelectClose, onChangeFilter)(dispatch);
 
   const handleSetDate = (onSelectClose) =>
     setDate(
       selectedDate.toLocaleDateString(),
       filters,
-      onSelectClose
+      onSelectClose,
+      onChangeFilter
     )(dispatch);
-
-  const handleFilterTasks = () => {
-    if (filters.size === 0) {
-      console.log("select at least one filter");
-      return;
-    }
-
-    onChangeFilter({
-      status,
-      selectedDate: date,
-      priorities,
-    });
-  };
 
   const clearStatusFromFilters = () => {
     clearFilter(filters, "status", onChangeFilter)(dispatch);
@@ -266,8 +254,6 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
             )}
           </div>
         </div>
-
-        <button onClick={handleFilterTasks}>Filter</button>
       </div>
     </div>
   );

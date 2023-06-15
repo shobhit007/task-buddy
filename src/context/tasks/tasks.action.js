@@ -6,15 +6,12 @@ import {
   completeTask,
   deleteTask,
   updateTask,
-  tasksAscByDate,
-  tasksDescByDate,
   filterTaskList,
   createList,
   getUserLists,
   getListOfTasksByName,
   updateTaskStatus,
   updateTaskPriority,
-  searchTask,
   updateList,
   deleteList,
   createLineup,
@@ -59,38 +56,6 @@ export const fetchTaskListByName = (user, listId) => async (dispatch) => {
   }
 };
 
-// Get tasks in asc order by createdAt
-export const fetchTaskListAsc = (user) => async (dispatch) => {
-  dispatch(fetchTaskListStart());
-  try {
-    const { documents } = await tasksAscByDate(user.$id);
-    dispatch(fetchTaskListSuccess(documents));
-  } catch (error) {
-    dispatch(fetchTaskListFailed(error.message));
-  }
-};
-
-// Get tasks in desc order by createdAt
-export const fetchTaskListDesc = (user) => async (dispatch) => {
-  dispatch(fetchTaskListStart());
-  try {
-    const { documents } = await tasksDescByDate(user.$id);
-    dispatch(fetchTaskListSuccess(documents));
-  } catch (error) {
-    dispatch(fetchTaskListFailed(error.message));
-  }
-};
-
-// Search task
-export const searchTaskAsync = async (userid, searchInput) => {
-  try {
-    const { documents } = await searchTask(userid, searchInput);
-    console.log(documents);
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 export const filteredList = (user, filters, sorting) => async (dispatch) => {
   dispatch(fetchTaskListStart());
   try {
@@ -104,8 +69,7 @@ export const filteredList = (user, filters, sorting) => async (dispatch) => {
 // Create a new task
 export const createTask = async (user, data) => {
   try {
-    const task = await createNewTask(user.$id, data);
-    console.log(task);
+    await createNewTask(user.$id, data);
   } catch (error) {
     console.log(error);
   }
@@ -114,8 +78,7 @@ export const createTask = async (user, data) => {
 // Update a task priority
 export const updateTaskPriorityAsync = async (taskId, priority) => {
   try {
-    const task = await updateTaskPriority(taskId, priority);
-    console.log(task);
+    await updateTaskPriority(taskId, priority);
   } catch (error) {
     console.log(error);
   }
@@ -124,8 +87,7 @@ export const updateTaskPriorityAsync = async (taskId, priority) => {
 // Update a task status
 export const updateTaskStatusAsync = async (taskId, status) => {
   try {
-    const task = await updateTaskStatus(taskId, status);
-    console.log(task);
+    await updateTaskStatus(taskId, status);
   } catch (error) {
     console.log(error);
   }
@@ -134,8 +96,7 @@ export const updateTaskStatusAsync = async (taskId, status) => {
 // Update status by complete a task
 export const completeTaskAsync = async (taskId) => {
   try {
-    const task = await completeTask(taskId);
-    console.log(task);
+    await completeTask(taskId);
   } catch (error) {
     console.log(error);
   }
@@ -153,8 +114,7 @@ export const deleteTaskAsync = async (taskId) => {
 // Update a task
 export const updateTaskAsync = async (taskId, data) => {
   try {
-    const task = await updateTask(taskId, data);
-    console.log(task);
+    await updateTask(taskId, data);
   } catch (error) {
     console.log(error);
   }
@@ -166,8 +126,7 @@ export const updateTaskAsync = async (taskId, data) => {
 //Create list
 export const createNewList = async (userId, name) => {
   try {
-    const list = await createList(userId, name);
-    console.log(list);
+    await createList(userId, name);
   } catch (error) {
     console.log(error);
   }
