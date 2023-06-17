@@ -1,10 +1,14 @@
+import { useState } from "react";
+
 import FormComponent from "../../components/form/form.component";
 import Input from "../../components/input/input.component";
 import { Link } from "react-router-dom";
 import Button from "../../components/button/button";
 
-import { useContext, useState } from "react";
-import { UserContext } from "../../context/user.context";
+import { useDispatch, useSelector } from "react-redux";
+
+import { signupStart } from "../../store/user/user.actions";
+import { selectCurrentUser } from "../../store/user/user.selector";
 
 const FORM_FIELDS = {
   name: "",
@@ -14,7 +18,9 @@ const FORM_FIELDS = {
 
 function Signup() {
   const [formFields, setFormFields] = useState(FORM_FIELDS);
-  const { createNewUser } = useContext(UserContext);
+
+  const dispatch = useDispatch();
+  const { errorMessage } = useSelector(selectCurrentUser);
 
   const { email, password, name } = formFields;
 
@@ -30,12 +36,7 @@ function Signup() {
   const handleOnSubmit = (e) => {
     e.preventDefault();
 
-    if (!email || !password || !name) {
-      console.log("fields are required.");
-      return;
-    }
-
-    createNewUser(email, password, name);
+    dispatch(signupStart(email, password, name));
   };
 
   return (
@@ -62,6 +63,11 @@ function Signup() {
           value={password}
           onChange={handleOnChange}
         />
+        {errorMessage && (
+          <span className="text-xs font-medium text-red-600">
+            {errorMessage}
+          </span>
+        )}
         <Button style={{ marginTop: "1.25rem" }}>Sign Up</Button>
         <p className="text-sm font-semibold text-black mt-3">
           Already have an account?

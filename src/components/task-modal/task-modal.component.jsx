@@ -1,11 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Button from "../button/button";
-
-import { UserContext } from "../../context/user.context";
-import { TaskContext } from "../../context/tasks/tasks.context";
-
-import { createNewList, createTask } from "../../context/tasks/tasks.action";
 
 import {
   Select,
@@ -13,16 +8,25 @@ import {
   SelectTrigger,
 } from "../select/select.component";
 
+import { useDispatch, useSelector } from "react-redux";
+
+import { selectCurrentUser } from "../../store/user/user.selector";
+import { selectList } from "../../store/list/list.selector";
+
+import { createListStart } from "../../store/list/list.actions";
+import { createTaskStart } from "../../store/task/task.action";
+
 const FIELDS = {
   title: "",
   description: "",
 };
 
 function TaskModal({ onCloseModal }) {
-  const { user } = useContext(UserContext);
-  const { userLists } = useContext(TaskContext);
+  const dispatch = useDispatch();
+  const { list } = useSelector(selectList);
+  const { currentUser: user } = useSelector(selectCurrentUser);
 
-  const [filteredList, setFilteredList] = useState(userLists);
+  const [filteredList, setFilteredList] = useState(list);
   const [fields, setFields] = useState(FIELDS);
   const [showListIput, setShowListInput] = useState(false);
   const [listName, setListName] = useState("");
@@ -30,12 +34,12 @@ function TaskModal({ onCloseModal }) {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const newFilteredList = userLists.filter((list) => {
+    const newFilteredList = list.filter((list) => {
       return list.list_name.toLowerCase().includes(search.toLocaleLowerCase());
     });
 
     setFilteredList(newFilteredList);
-  }, [search, userLists]);
+  }, [search, list]);
 
   const handleOnSearch = (e) => setSearch(e.target.value);
 
@@ -60,13 +64,14 @@ function TaskModal({ onCloseModal }) {
     if (!user) return;
 
     const data = { title, description, selectedList };
-    createTask(user, data);
+    dispatch(createTaskStart(user.$id, data));
   };
 
+  // Create new list
   const handleSubmitNewList = (e) => {
     e.preventDefault();
 
-    createNewList(user.$id, listName);
+    dispatch(createListStart(user.$id, listName));
     setShowListInput(false);
   };
 

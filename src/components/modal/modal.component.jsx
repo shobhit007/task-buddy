@@ -1,11 +1,4 @@
-import React, { useReducer } from "react";
-
-import {
-  deleteTaskAsync,
-  updateTaskAsync,
-  updateTaskStatusAsync,
-  deleteLineUpAsync,
-} from "../../context/tasks/tasks.action";
+import React, { useState } from "react";
 
 import {
   SelectContent,
@@ -15,6 +8,16 @@ import {
 import Tooltip from "../tooltip/tooltip.component";
 
 import { StepForward, Ban, Trash2, FlagIcon } from "lucide-react";
+import { useDispatch } from "react-redux";
+
+import {
+  deleteTaskStart,
+  editTaskStart,
+  updateTaskStatusStart,
+  updateTaskPriorityStart,
+} from "../../store/task/task.action";
+
+import { deleteLineUpStart } from "../../store/lineups/lineups.actions";
 
 const priorityColors = {
   3: "#ef4444",
@@ -49,36 +52,40 @@ const priorities = {
   0: "Low",
 };
 
-const reducer = (state, action) => {
-  const { type, payload } = action;
-
-  switch (type) {
-    case "SET_INPUT_VALUE":
-      return { ...state, [payload.name]: payload.value };
-    default:
-      return state;
-  }
-};
-
-function Modal({ task, onCloseModal, onHandlePriority, priority }) {
-  const { title, description, status, $createdAt, $id, list_name, lineupId } =
-    task;
-
-  const [state, dispatch] = useReducer(reducer, {
+function Modal({ task, onCloseModal }) {
+  const {
     title,
     description,
+    status,
+    $createdAt,
+    $id,
+    priority,
+    list_name,
+    lineupId,
+  } = task;
+
+  const [state, setState] = useState({
+    title: title,
+    description: description,
   });
+
+  const [taskPriority, setTaskPriority] = useState(priority);
+
+  const dispatch = useDispatch();
 
   const date = new Date($createdAt).toLocaleDateString();
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
-    dispatch({ type: "SET_INPUT_VALUE", payload: { name, value } });
+    setState((preValues) => ({ ...preValues, [name]: value }));
   };
 
   const handleDeleteTask = () => {
-    deleteLineUpAsync(lineupId);
-    deleteTaskAsync($id);
+    if (lineupId) {
+      console.log(lineupId);
+      dispatch(deleteLineUpStart(lineupId));
+    }
+    dispatch(deleteTaskStart($id));
     onCloseModal();
   };
 
@@ -91,15 +98,24 @@ function Modal({ task, onCloseModal, onHandlePriority, priority }) {
     const data = {
       title: state.title,
       description: state.description,
-      priority: parseInt(state.priority),
     };
-    updateTaskAsync($id, data);
+    dispatch(editTaskStart($id, data));
 
     onCloseModal();
   };
 
   const handleUpdateTaskStatus = () =>
-    updateTaskStatusAsync($id, status === "complete" ? "pending" : "complete");
+    dispatch(
+      updateTaskStatusStart($id, status === "complete" ? "pending" : "complete")
+    );
+
+  const handlePriority = (priorityKey, callback) => {
+    setTaskPriority(priorityKey);
+    if (priority !== priorityKey) {
+      dispatch(updateTaskPriorityStart($id, priorityKey));
+    }
+    callback();
+  };
 
   return (
     <div className="fixed inset-0 w-full h-full z-100">
@@ -142,18 +158,18 @@ function Modal({ task, onCloseModal, onHandlePriority, priority }) {
                 <SelectTrigger>
                   <Tooltip
                     content={
-                      priorities[priority]
-                        ? `Priority ${priorities[priority]}`
+                      priorities[taskPriority]
+                        ? `Priority ${priorities[taskPriority]}`
                         : "Select priority"
                     }
                   >
                     <button
-                      className={`group/button w-10 h-10 rounded-[50%] flex items-center justify-center ml-2 border border-[${priorityColors[priority]}]`}
+                      className={`group/button w-10 h-10 rounded-[50%] flex items-center justify-center ml-2 border border-[${priorityColors[taskPriority]}]`}
                     >
                       <FlagIcon
                         size={14}
-                        fill={priorityColors[priority] || "transparent"}
-                        color={priorityColors[priority]}
+                        fill={priorityColors[taskPriority] || "transparent"}
+                        color={priorityColors[taskPriority]}
                       />
                     </button>
                   </Tooltip>
@@ -165,7 +181,7 @@ function Modal({ task, onCloseModal, onHandlePriority, priority }) {
                         <button
                           key={key}
                           className="block w-full flex items-center justify-start p-2 rounded hover:bg-slate-200 text-sm"
-                          onClick={() => onHandlePriority(key, onClose)}
+                          onClick={() => handlePriority(key, onClose)}
                         >
                           <FlagIcon
                             size={14}
@@ -178,7 +194,7 @@ function Modal({ task, onCloseModal, onHandlePriority, priority }) {
                       ))}
                       <div className="mt-2 pt-0.5 border-t border-gray-100">
                         <button
-                          onClick={() => onHandlePriority(-1, onClose)}
+                          onClick={() => handlePriority(-1, onClose)}
                           className="block w-full flex items-center justify-start p-2 rounded hover:bg-slate-200 text-sm mt-0.5"
                         >
                           <Ban size={14} className="text-gray-500 mr-2" />

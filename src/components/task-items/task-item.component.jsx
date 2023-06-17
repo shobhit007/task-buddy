@@ -1,12 +1,6 @@
-import React, { Fragment, useReducer, useState } from "react";
+import React, { Fragment, useState } from "react";
 
 import { Ban, Check, FlagIcon, Pencil, Trash2 } from "lucide-react";
-
-import {
-  completeTaskAsync,
-  deleteTaskAsync,
-  updateTaskPriorityAsync,
-} from "../../context/tasks/tasks.action";
 
 import Tooltip from "../tooltip/tooltip.component";
 
@@ -17,6 +11,15 @@ import {
 } from "../select/select.component";
 
 import Modal from "../modal/modal.component";
+
+import { useDispatch } from "react-redux";
+
+// import { selectTask } from "../../store/task/task.selector";
+import {
+  deleteTaskStart,
+  updateTaskPriorityStart,
+  updateTaskStatusStart,
+} from "../../store/task/task.action";
 
 const priorityColors = {
   3: "#ef4444",
@@ -44,40 +47,28 @@ const options = [
   },
 ];
 
-const reducer = (state, action) => {
-  const { type, payload } = action;
-
-  switch (type) {
-    case "SET_INPUT_VALUE":
-      return { ...state, [payload.name]: payload.value };
-    case "SET_PRIORITY":
-      return { ...state, priority: payload };
-    default:
-      return state;
-  }
-};
-
 function Task({ task }) {
   const { title, priority, status, $createdAt, $id, list_name } = task;
+  const dispatch = useDispatch();
+  // const { loading } = useSelector(selectTask);
+
   const [showEdit, setShowEdit] = useState(false);
-  const [state, dispatch] = useReducer(reducer, {
-    priority,
-  });
+  const [taskPriority, setTaskPriority] = useState(priority);
 
   const date = new Date($createdAt).toLocaleDateString();
 
-  const handlePriority = (key, callback) => {
-    dispatch({ type: "SET_PRIORITY", payload: key });
-
-    if (priority !== key) {
-      updateTaskPriorityAsync($id, key);
+  const handlePriority = (priorityKey, callback) => {
+    setTaskPriority(priorityKey);
+    if (priority !== priorityKey) {
+      dispatch(updateTaskPriorityStart($id, priorityKey));
     }
     callback();
   };
 
-  const handleCompleteTask = () => completeTaskAsync($id);
+  const handleCompleteTask = () =>
+    dispatch(updateTaskStatusStart($id, "complete"));
 
-  const handleDeleteTask = () => deleteTaskAsync($id);
+  const handleDeleteTask = () => dispatch(deleteTaskStart($id));
 
   return (
     <Fragment>
@@ -127,13 +118,11 @@ function Task({ task }) {
                     <FlagIcon
                       size={14}
                       fill={
-                        priorityColors[state.priority]
-                          ? priorityColors[state.priority]
+                        priorityColors[taskPriority]
+                          ? priorityColors[taskPriority]
                           : "transparent"
                       }
-                      className={`text-gray-500 font-medium group-hover/button:text-${
-                        priorityColors[state.priority]
-                      }`}
+                      className={`text-gray-500 font-medium group-hover/button:text-${priorityColors[taskPriority]}`}
                     />
                   </button>
                 </Tooltip>

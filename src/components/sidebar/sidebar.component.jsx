@@ -1,17 +1,9 @@
-import { useContext, useEffect, useState } from "react";
-
-import { UserContext } from "../../context/user.context";
-import { TaskContext } from "../../context/tasks/tasks.context";
-import {
-  fetchUserListAsync,
-  createNewList,
-} from "../../context/tasks/tasks.action";
+import { useEffect, useState } from "react";
 
 import { listenChanges } from "../../utils/api/appwrite.api";
 
-import ListItem from "../list-item/list-item.compnent";
-
 import { ChevronDown, ChevronUp, Home, List, X } from "lucide-react";
+
 import {
   Select,
   SelectContent,
@@ -19,26 +11,41 @@ import {
 } from "../select/select.component";
 
 import CustomLink from "../custom-link/custom-link.componenet";
+import ListItem from "../list-item/list-item.compnent";
+
+import { useDispatch, useSelector } from "react-redux";
+
+import { selectCurrentUser } from "../../store/user/user.selector";
+import { selectList } from "../../store/list/list.selector";
+
+import { fetchListStart, createListStart } from "../../store/list/list.actions";
+import { logOutStart } from "../../store/user/user.actions";
+import { useNavigate } from "react-router-dom";
 
 function Sidebar() {
-  const { dispatch, userLists } = useContext(TaskContext);
-  const { user, logOutUser } = useContext(UserContext);
-
   const [showModal, setShowModal] = useState(false);
   const [showAccr, setShowAccr] = useState(false);
   const [listName, setListName] = useState("");
 
+  const dispatch = useDispatch();
+  const { currentUser: user } = useSelector(selectCurrentUser);
+  const { list } = useSelector(selectList);
+
+  const navigate = useNavigate();
+
+  // Fetch lists/categories
   useEffect(() => {
     if (!user) return;
 
-    fetchUserListAsync(user.$id)(dispatch);
+    dispatch(fetchListStart(user.$id));
   }, [dispatch, user]);
 
+  // Listen changes for lists/categories
   useEffect(() => {
     if (!user) return;
 
     const unsubscribe = listenChanges((e) => {
-      fetchUserListAsync(user.$id)(dispatch);
+      dispatch(fetchListStart(user.$id));
     });
 
     return () => unsubscribe();
@@ -49,8 +56,13 @@ function Sidebar() {
   const hanldeNewList = () => {
     if (!listName) return;
 
-    createNewList(user.$id, listName);
+    dispatch(createListStart(user.$id, listName));
     setShowModal(false);
+  };
+
+  const logOutUser = () => {
+    dispatch(logOutStart());
+    navigate("/signin", { replace: true });
   };
 
   return (
@@ -68,7 +80,7 @@ function Sidebar() {
               renderItem={() => (
                 <button
                   className="w-full p-2 rounded bg-blue-400 hover:bg-blue-500 text-sm text-white"
-                  onClick={logOutUser}
+                  // onClick={logOutUser}
                 >
                   Log out
                 </button>
@@ -111,7 +123,7 @@ function Sidebar() {
             } transition-["grid-template-rows"] duration-300`}
           >
             <div className="overflow-hidden w-full flex flex-col gap-2">
-              {userLists.map(({ list_name, $id }) => (
+              {list.map(({ list_name, $id }) => (
                 <ListItem
                   key={$id}
                   listName={list_name}

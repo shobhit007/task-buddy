@@ -36,6 +36,7 @@ export const listenChanges = (callback) =>
 export const lineups = async (userid) => {
   return await db.listDocuments(DATABASE_ID, LINEUPS_COLLECTION_ID, [
     Query.equal("userid", userid),
+    Query.orderDesc("$createdAt"),
   ]);
 };
 
@@ -155,7 +156,7 @@ export const getListOfTasks = async (userId) => {
 };
 
 // Get all tasks by list id
-export const getListOfTasksByName = async (userId, listId) => {
+export const getListOfTasksByListId = async (userId, listId) => {
   try {
     const lists = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
       Query.equal("userid", userId),
@@ -204,17 +205,10 @@ export const filterTaskList = async (userId, filters, sorting = null) => {
       }
     });
   }
-
-  try {
-    const list = await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("userid", userId),
-      ...queries,
-    ]);
-    return list;
-  } catch (error) {
-    console.log(error);
-    return error;
-  }
+  return await db.listDocuments(DATABASE_ID, COLLECTION_ID, [
+    Query.equal("userid", userId),
+    ...queries,
+  ]);
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -246,8 +240,8 @@ export const updateList = async (listId, data) => {
   return await db.updateDocument(DATABASE_ID, LIST_COLLECTION_ID, listId, data);
 };
 
-//Get user's all lists
-export const getUserLists = async (userid) => {
+//Get all lists/categories
+export const getLists = async (userid) => {
   try {
     const lists = await db.listDocuments(DATABASE_ID, LIST_COLLECTION_ID, [
       Query.equal("userid", userid),

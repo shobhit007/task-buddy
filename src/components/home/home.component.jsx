@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 
@@ -8,26 +8,33 @@ import {
   SelectTrigger,
 } from "../select/select.component";
 
-import {
-  createLineupAsync,
-  getLineUpsAsync,
-  fetchTaskList,
-  deleteLineUpAsync,
-} from "../../context/tasks/tasks.action";
-
 import { listenChanges } from "../../utils/api/appwrite.api";
 
-import { TaskContext } from "../../context/tasks/tasks.context";
-import { UserContext } from "../../context/user.context";
 import Modal from "../modal/modal.component";
+import { useDispatch, useSelector } from "react-redux";
+
+import { selectCurrentUser } from "../../store/user/user.selector";
+import { selectTaskList } from "../../store/task-list/task-list.selector";
+import { selectLineups } from "../../store/lineups/lineups.selector";
+
+import { fetchTaskListStart } from "../../store/task-list/task-list.actions";
+
+import {
+  fetchLineUpStart,
+  createLineUpStart,
+  deleteLineUpStart,
+} from "../../store/lineups/lineups.actions";
 
 function Home() {
-  const { taskList, dispatch } = useContext(TaskContext);
-  const { user } = useContext(UserContext);
+  // const { taskList, dispatch } = useContext(TaskContext);
+  const dispatch = useDispatch();
+  const { currentUser } = useSelector(selectCurrentUser);
+  const { taskList } = useSelector(selectTaskList);
+  const { lineups } = useSelector(selectLineups);
 
   const [filteredList, setFilteredList] = useState(taskList);
   const [search, setSearch] = useState("");
-  const [lineups, setLineups] = useState([]);
+  const [lineupsList, setLineupsList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [task, setTask] = useState({});
 
@@ -35,54 +42,48 @@ function Home() {
 
   // fetch task list
   useEffect(() => {
-    fetchTaskList(user)(dispatch);
-  }, [user, dispatch]);
+    if (!currentUser) return;
+
+    dispatch(fetchTaskListStart(currentUser.$id));
+  }, [currentUser, dispatch]);
 
   // listen changes for task list
   useEffect(() => {
-    if (!user) return;
+    if (!currentUser) return;
 
     const unsubscribe = listenChanges(() => {
-      fetchTaskList({ $id: user.$id })(dispatch);
+      dispatch(fetchTaskListStart(currentUser.$id));
     });
 
     return () => unsubscribe();
-  }, [user, dispatch]);
+  }, [currentUser, dispatch]);
 
-  // Get all lineups
-  const getLineUps = useCallback(
-    async (userid) => {
-      const docs = await getLineUpsAsync(userid);
-      if (docs.length) {
-        const filteredTasks = docs.map((lineup) => {
-          const task = taskList.find((task) => task.$id === lineup.taskid);
-
-          return { ...task, lineupId: lineup.$id };
-        });
-
-        setLineups(filteredTasks);
-      }
-    },
-    [taskList]
-  );
-
+  // Filter lineups
   useEffect(() => {
-    if (!user) return;
+    const filteredLineUps = lineups.map((lineup) => {
+      const task = taskList.find((task) => task.$id === lineup.taskid);
+      return { lineupId: lineup.$id, ...task };
+    });
+    setLineupsList(filteredLineUps);
+  }, [lineups, taskList]);
 
-    getLineUps(user.$id);
-  }, [user, getLineUps]);
+  // FetchLineups
+  useEffect(() => {
+    if (!currentUser) return;
+
+    dispatch(fetchLineUpStart(currentUser.$id));
+  }, [currentUser, dispatch]);
 
   // Listen changes for lineups
   useEffect(() => {
-    if (!user) return;
+    if (!currentUser) return;
 
     const unsubscribe = listenChanges(async () => {
-      const docs = await getLineUpsAsync(user.$id);
-      setLineups(docs);
+      dispatch(fetchLineUpStart(currentUser.$id));
     });
 
     return () => unsubscribe();
-  }, [getLineUps, user]);
+  }, [dispatch, currentUser]);
 
   // Search
   useEffect(() => {
@@ -96,7 +97,7 @@ function Home() {
   const handleCreateLineup = (task, onSelectClose) => {
     const isExist = lineups.find((lineup) => lineup.$id === task.$id);
     if (!isExist) {
-      createLineupAsync(task.userid, task.$id);
+      dispatch(createLineUpStart(task.userid, task.$id));
     }
 
     onSelectClose();
@@ -113,7 +114,10 @@ function Home() {
     ref.current.scrollLeft = ref.current.scrollLeft - sliderWidth;
   };
 
-  const handleDeleteLineUp = (id) => deleteLineUpAsync(id);
+  const handleDeleteLineUp = (id) => {
+    console.log(id);
+    dispatch(deleteLineUpStart(id));
+  };
 
   const handleShowModal = (task) => {
     setTask(task);
@@ -174,9 +178,9 @@ function Home() {
                 className="items-stretch flex gap-3 overflow-x-scroll no-scrollbar"
                 ref={ref}
               >
-                {lineups.map((lineup) => (
+                {lineupsList.map((lineup) => (
                   <div
-                    key={lineup?.$id}
+                    key={lineup?.lineupId}
                     className="group flex items-center justify-between min-w-[192px] lg:min-w-[288px] bg-white rounded px-3 py-2"
                   >
                     <button

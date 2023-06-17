@@ -11,13 +11,17 @@ import {
 } from "../select/select.component";
 import { CalendarDays, Check, Flag } from "lucide-react";
 
-import { useAppContext } from "../../context/app/app.context";
+import { useDispatch, useSelector } from "react-redux";
+
+import { selectCurrentUser } from "../../store/user/user.selector";
+import { selectTaskList } from "../../store/task-list/task-list.selector";
+
 import {
-  setDate,
-  setPriorities,
-  setStatus,
+  filterByStatus,
+  filterByCreatedDate,
+  filterByPriorities,
   clearFilter,
-} from "../../context/app/app.actions";
+} from "../../store/task-list/task-list.actions";
 
 const priorityColors = {
   3: "#ef4444",
@@ -76,10 +80,12 @@ const Flags = ({ priorityMap }) => {
   );
 };
 
-function FilterCard({ closeFilterCard, onChangeFilter }) {
+function FilterCard({ closeFilterCard, listId }) {
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const { dispatch, filters } = useAppContext();
+  const dispatch = useDispatch();
+  const { filters } = useSelector(selectTaskList);
+  const { currentUser } = useSelector(selectCurrentUser);
 
   const status = filters.get("status");
   const priorities = filters.get("priorities");
@@ -87,19 +93,43 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
 
   const isSelected = (value) => value === status;
 
+  // Filter by priority
   const handleSetPriorities = (value, onSelectClose) =>
-    setPriorities(value, filters, onSelectClose, onChangeFilter)(dispatch);
+    dispatch(
+      filterByPriorities(
+        "priorities",
+        value,
+        currentUser.$id,
+        filters,
+        listId,
+        onSelectClose
+      )
+    );
 
+  // Filter by status
   const handleSetStatus = (value, onSelectClose) =>
-    setStatus(value, filters, onSelectClose, onChangeFilter)(dispatch);
+    setStatus(value, filters, onSelectClose)(dispatch);
 
+  // Filter by created date
   const handleSetDate = (onSelectClose) =>
     setDate(
       selectedDate.toLocaleDateString(),
       filters,
-      onSelectClose,
-      onChangeFilter
+      onSelectClose
     )(dispatch);
+
+  const handleFilterTasks = () => {
+    if (filters.size === 0) {
+      console.log("select at least one filter");
+      return;
+    }
+
+    onChangeFilter({
+      status,
+      selectedDate: date,
+      priorities,
+    });
+  };
 
   const clearStatusFromFilters = () => {
     clearFilter(filters, "status", onChangeFilter)(dispatch);
@@ -160,7 +190,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
             {status && (
               <button
                 className="text-sm font-medium text-gray-600 flex items-end"
-                onClick={clearStatusFromFilters}
+                onClick={() => handleClearFilter("status")}
               >
                 clear
               </button>
@@ -247,7 +277,7 @@ function FilterCard({ closeFilterCard, onChangeFilter }) {
             {date && (
               <button
                 className="text-sm font-medium text-gray-600 flex items-end"
-                onClick={clearDateFromFilters}
+                onClick={() => handleClearFilter("date")}
               >
                 clear
               </button>

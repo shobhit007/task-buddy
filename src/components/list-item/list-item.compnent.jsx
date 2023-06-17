@@ -11,21 +11,23 @@ import Tooltip from "../tooltip/tooltip.component";
 
 import CustomLink from "../custom-link/custom-link.componenet";
 
-import {
-  deleteListAsync,
-  updateListAsync,
-} from "../../context/tasks/tasks.action";
+import { useDispatch } from "react-redux";
+
+import { editListStart, deleteListStart } from "../../store/list/list.actions";
 
 const makeLink = (link) => {
-  return link.replace(" ", "_").toLowerCase();
+  const regex = /\s/g;
+  return link.replace(regex, "-").toLowerCase();
 };
 
 function ListItem({ listId, listName, onToggleModal }) {
   const [isRename, setIsRename] = useState(false);
   const [listInput, setListInput] = useState(listName);
 
+  const dispatch = useDispatch();
+
   const handleDeleteList = (callback) => {
-    deleteListAsync(listId);
+    dispatch(deleteListStart(listId));
     callback();
   };
 
@@ -41,7 +43,7 @@ function ListItem({ listId, listName, onToggleModal }) {
 
   const hanldeOnSubmit = (e) => {
     e.preventDefault();
-    updateListAsync(listId, { list_name: listInput });
+    dispatch(editListStart(listId, { list_name: listInput }));
     setIsRename(false);
   };
 

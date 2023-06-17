@@ -1,10 +1,5 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import FilterCard from "../filter-card/filter-card.component";
-
-import { TaskContext } from "../../context/tasks/tasks.context";
-import { UserContext } from "../../context/user.context";
-
-import { filteredList } from "../../context/tasks/tasks.action";
 
 import { Outlet } from "react-router-dom";
 import {
@@ -23,9 +18,24 @@ import {
 } from "../select/select.component";
 
 import Searchbox from "../search-box/search-box.component";
-import { useAppContext } from "../../context/app/app.context";
 
-const options = [
+import { useDispatch, useSelector } from "react-redux";
+
+import {
+  lengthOfCompleteTasks,
+  lengthOfPendingTasks,
+  selectTaskList,
+} from "../../store/task-list/task-list.selector";
+
+import { selectCurrentUser } from "../../store/user/user.selector";
+
+import {
+  setSorting,
+  clearSorting,
+  setFilteredList,
+} from "../../store/task-list/task-list.actions";
+
+const sortingOptions = [
   {
     name: "Status",
     key: "status",
@@ -44,118 +54,53 @@ const options = [
 ];
 
 function Header({ list_id }) {
-  const [showFilterCard, setShowFilterCard] = useState(false);
-  const [sortingOptions, setSortingOptions] = useState(options);
-  const [sorting, setSorting] = useState(new Map());
-
   const [search, setSearch] = useState("");
+  const [showFilterCard, setShowFilterCard] = useState(false);
 
-  const {
-    dispatch,
-    lengthOfPendingTasks,
-    lengthOfCompleteTasks,
-    setFilteredList,
-    taskList,
-  } = useContext(TaskContext);
+  const completeTasks = useSelector(lengthOfCompleteTasks);
+  const pendingTasks = useSelector(lengthOfPendingTasks);
+  const { sorting, filters, taskList } = useSelector(selectTaskList);
+  const { currentUser } = useSelector(selectCurrentUser);
 
-  const { user } = useContext(UserContext);
-
-  const { filters } = useAppContext();
-
-  const date = filters.get("date");
-  const priorities = filters.get("priorities");
-  const status = filters.get("status");
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const filteredList = taskList.filter((task) => {
       return task.title.toLowerCase().includes(search.toLocaleLowerCase());
     });
 
-    setFilteredList(filteredList);
-  }, [search, taskList, setFilteredList]);
+    dispatch(setFilteredList(filteredList));
+  }, [search, taskList, dispatch]);
 
-  const handleSortingOptions = (optionKey, optionOrder) => {
-    const newSortingOptions = sortingOptions.map((item) => {
-      if (item.key === optionKey) {
-        item.order = optionOrder === "desc" ? "asc" : "desc";
-      }
-      return item;
-    });
-
-    const newSortingMap = new Map(sorting);
-
-    if (!newSortingMap.has(optionKey)) {
-      newSortingMap.set(optionKey, optionOrder);
-      filteredList(user, { list_id }, newSortingMap)(dispatch);
-      setSorting(newSortingMap);
-    } else {
-      newSortingMap.delete(optionKey);
-      newSortingMap.set(optionKey, optionOrder);
-      filteredList(
-        user,
-        { list_id, status, priorities, selectedDate: date },
-        newSortingMap
-      )(dispatch);
-      setSorting(newSortingMap);
+  const handleSorting = (key, value) => {
+    const sortingOption = sorting.has(key);
+    if (sortingOption) {
+      const sortingValue = sorting.get(key);
+      value = sortingValue === "desc" ? "asc" : "desc";
     }
-
-    setSortingOptions(newSortingOptions);
+    dispatch(
+      setSorting(key, value, sorting, filters, list_id, currentUser.$id)
+    );
   };
 
   const handleAscOrder = (key, order) => {
-    const newSortingOptions = sortingOptions.map((item) => {
-      if (item.key === key) {
-        item.order = order === "desc" ? "asc" : "desc";
-      }
-      return item;
-    });
-
-    const sortingMap = new Map(sorting);
-
-    sortingMap.delete(key);
-    sortingMap.set(key, order);
-
-    if (order !== sorting.get(key)) {
-      filteredList(user, { list_id }, sortingMap)(dispatch);
-      setSorting(sortingMap);
-      setSortingOptions(newSortingOptions);
+    if (order !== sorting?.get(key)) {
+      dispatch(
+        setSorting(key, order, sorting, filters, list_id, currentUser.$id)
+      );
     }
   };
   const handleDescOrder = (key, order) => {
-    const newSortingOptions = sortingOptions.map((item) => {
-      if (item.key === key) {
-        item.order = order === "desc" ? "asc" : "desc";
-      }
-      return item;
-    });
-
-    const sortingMap = new Map(sorting);
-
-    sortingMap.delete(key);
-    sortingMap.set(key, order);
-
-    if (order !== sorting.get(key)) {
-      filteredList(user, { list_id }, sortingMap)(dispatch);
-      setSorting(sortingMap);
-      setSortingOptions(newSortingOptions);
+    if (order !== sorting?.get(key)) {
+      dispatch(
+        setSorting(key, order, sorting, filters, list_id, currentUser.$id)
+      );
     }
   };
 
-  const handleFilters = (filters) =>
-    filteredList(user, { ...filters, list_id })(dispatch);
-
-  const clearSorting = (key) => {
-    const newSortingMap = new Map(sorting);
-
-    newSortingMap.delete(key);
-
-    filteredList(
-      user,
-      { list_id, status, priorities, selectedDate: date },
-      newSortingMap
-    )(dispatch);
-    setSorting(newSortingMap);
-  };
+  // Clear sorting
+  const handleClearSorting = (key) =>
+    dispatch(clearSorting(key, sorting, filters, list_id, currentUser.$id));
 
   const handleOnChange = (e) => setSearch(e.target.value);
 
@@ -218,7 +163,7 @@ function Header({ list_id }) {
                       )}
                       <button
                         className="w-full p-2 flex items-center mt-0.5"
-                        onClick={() => handleSortingOptions(key, order)}
+                        onClick={() => handleSorting(key, order)}
                       >
                         {name}
                         {sorting.has(key) && (
@@ -233,8 +178,8 @@ function Header({ list_id }) {
           </Select>
           {showFilterCard && (
             <FilterCard
+              listId={list_id}
               closeFilterCard={() => setShowFilterCard(false)}
-              onChangeFilter={handleFilters}
             />
           )}
         </div>
@@ -249,7 +194,7 @@ function Header({ list_id }) {
               <div className="flex items-center">
                 <button
                   className="p-0.5 border-2 bg-blue-600 rounded-[50%] hover:scale-110"
-                  onClick={() => clearSorting("status")}
+                  onClick={() => handleClearSorting("status")}
                 >
                   <X size={11} className="text-white" />
                 </button>
@@ -260,7 +205,7 @@ function Header({ list_id }) {
               <div className="flex items-center">
                 <button
                   className="p-0.5 border-2 bg-blue-600 rounded-[50%] hover:scale-110"
-                  onClick={() => clearSorting("priority")}
+                  onClick={() => handleClearSorting("priority")}
                 >
                   <X size={11} className="text-white" />
                 </button>
@@ -271,7 +216,7 @@ function Header({ list_id }) {
               <div className="flex items-center">
                 <button
                   className="p-0.5 border-2 bg-blue-600 rounded-[50%] hover:scale-110"
-                  onClick={() => clearSorting("created_at")}
+                  onClick={() => handleClearSorting("created_at")}
                 >
                   <X size={11} className="text-white" />
                 </button>
@@ -286,14 +231,14 @@ function Header({ list_id }) {
           <div className="w-full md:w-64 bg-white py-3 px-2 rounded text-xs uppercase font-bold text-gray-500 tracking-wide shadow-md border-t-2 border-t-gray-400">
             Pending
             <span className="inline-block p-3 py-[1px] border-[1px] border-solid border-slate-300 font-semibold ml-2 rounded-xl">
-              {lengthOfPendingTasks}
+              {pendingTasks}
             </span>
           </div>
 
           <div className="w-full md:w-64 bg-white py-3 px-2 rounded text-xs uppercase font-bold text-gray-500 tracking-wide shadow-md border-t-2 border-t-green-400">
             Complete
             <span className="inline-block p-3 py-[1px] border-[1px] border-solid border-slate-300 font-semibold ml-2 rounded-xl">
-              {lengthOfCompleteTasks}
+              {completeTasks}
             </span>
           </div>
         </div>
